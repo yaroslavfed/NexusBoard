@@ -9,25 +9,29 @@
     "build": "nest build",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "lint": "eslint \"src/**/*.ts\"",
-    "lint:fix": "eslint \"src/**/*.ts\" --fix",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
+    "lint:fix": "eslint \"{src,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "check": "yarn typecheck && yarn lint && yarn test && yarn build"
+    "check": "yarn typecheck && yarn lint && yarn test && yarn build && yarn format:check"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^11.4.7",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "swagger-ui-express": "^5.0.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
