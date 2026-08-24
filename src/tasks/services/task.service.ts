@@ -5,7 +5,7 @@ import { TASK_REPOSITORY } from '../task.constants';
 import type { CreateTaskInput } from '../schema/create-task.schema';
 import type { UpdateTaskInput } from '../schema/update-task.schema';
 import type { TaskQuery } from '../schema/task-query.schema';
-import type { TaskFilter } from '../repository/task.filter';
+import type { TaskSearchOptions } from '../../application/task-search-options';
 
 @Injectable()
 export class TaskService {
@@ -68,19 +68,21 @@ export class TaskService {
   }
 
   findAll(query: TaskQuery): Task[] {
-    const filter = this.mapQueryToFilter(query);
+    const options = this.mapQueryToSearchOptions(query);
 
-    return this.taskRepository.findAll(filter);
+    return this.taskRepository.findAll(options);
   }
 
   delete(id: string): boolean {
     return this.taskRepository.delete(id);
   }
 
-  private mapQueryToFilter(query: TaskQuery): TaskFilter {
+  private mapQueryToSearchOptions(query: TaskQuery): TaskSearchOptions {
     return {
       ...(query.status !== undefined ? { status: query.status } : {}),
       ...(query.priority !== undefined ? { priority: query.priority } : {}),
+      ...(query.sortBy !== undefined ? { sortBy: query.sortBy } : {}),
+      ...(query.order !== undefined ? { order: query.order } : {}),
     };
   }
 }
