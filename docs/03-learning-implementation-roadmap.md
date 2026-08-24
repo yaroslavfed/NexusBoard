@@ -2,796 +2,453 @@
 
 ## 1. Назначение
 
-Этот документ определяет **порядок обучения и развития проекта**.
+Этот документ определяет порядок развития NexusBoard и обучения внутри проекта.
 
-Его задача:
+Новый формат основан на **крупных продуктовых фазах**, а не на последовательности мелких упражнений по отдельным технологиям.
 
-- не перескакивать через фундамент;
-- не внедрять технологии раньше необходимости;
-- фиксировать прогресс;
-- понимать, что изучать дальше;
-- разделять развитие продукта на логические этапы.
+> Сначала выбирается законченный продуктовый сценарий, затем внутри него изучаются только реально нужные технологии и практические пробелы.
 
-Правило:
-
-> Следующий этап начинается только после понимания ключевых тем текущего этапа и завершения его обязательных задач.
+Известные темы используются сразу и не повторяются отдельными учебными этапами без необходимости.
 
 ---
 
-# Stage 0. Подготовка проекта
+## 2. Формат работы
 
-Цель: подготовить минимальную основу без преждевременной архитектуры.
+Для каждой фазы:
 
-- [x] Создать repository.
-- [x] Создать NestJS application.
-- [x] Настроить TypeScript.
-- [x] Настроить ESLint.
-- [x] Настроить Prettier или согласованный formatter.
-- [x] Включить `strict`.
-- [x] Настроить unit test runner.
-- [x] Создать минимальный README.
-- [x] Зафиксировать структуру документации.
-- [x] Убедиться, что проект запускается локально.
+1. формулируется пользовательский результат;
+2. проектируется архитектура;
+3. реализуется крупный вертикальный срез;
+4. новые технологии разбираются по мере появления;
+5. тесты добавляются вместе с функциональностью;
+6. проверяются failure/concurrency scenarios;
+7. выполняется code/architecture review.
 
-Результат:
-
-- чистый NestJS-проект;
-- отсутствует БД;
-- отсутствуют Docker, RabbitMQ, Redis, gRPC и Kubernetes.
+Не используется схема «сначала намеренно сделать через неподходящий транспорт, потом переписать на правильный», если назначение целевого решения уже понятно.
 
 ---
 
-# Stage 1. TypeScript Fundamentals + Task API
+## 3. Профиль обучения
 
-Цель: уверенно писать базовый TypeScript-код и понимать NestJS request flow.
+### Использовать сразу без отдельного курса
 
-Функциональность:
+- REST/HTTP;
+- базовый SQL CRUD;
+- обычные транзакции;
+- базовые индексы;
+- JWT/access/refresh/session management;
+- unit/integration/e2e fundamentals;
+- Docker Compose basics;
+- modular monolith/service boundaries;
+- RabbitMQ producer/consumer, ack/nack, idempotent consumer;
+- protobuf basics.
 
-- [ ] `POST /tasks`
-- [ ] `GET /tasks`
-- [ ] `GET /tasks/:id`
-- [ ] `PATCH /tasks/:id`
-- [ ] `DELETE /tasks/:id`
-- [ ] In-memory Task storage через `Map`.
+### Усиливать практикой по ходу проекта
 
-TypeScript:
-
-- [ ] primitives;
-- [ ] object types;
-- [ ] arrays;
-- [ ] tuples;
-- [ ] interface;
-- [ ] type;
-- [ ] class;
-- [ ] enum;
-- [ ] literal types;
-- [ ] union types;
-- [ ] optional properties;
-- [ ] readonly;
-- [ ] destructuring;
-- [ ] spread;
-- [ ] `Map`;
-- [ ] `Set`;
-- [ ] `Record`;
-- [ ] `Partial`;
-- [ ] `Pick`;
-- [ ] `Omit`;
-- [ ] `Object.keys`;
-- [ ] `Object.values`;
-- [ ] `Object.entries`;
-- [ ] template literals;
-- [ ] narrowing;
-- [ ] `unknown`;
-- [ ] `never`.
-
-NestJS:
-
-- [ ] Controller.
-- [ ] Service.
-- [ ] Module.
-- [ ] Provider.
-- [ ] Dependency Injection.
-- [ ] DTO.
-- [ ] Pipe.
-- [ ] Exception Filter.
-- [ ] Guard.
-- [ ] Interceptor.
-
-Контрольная точка:
-
-- [ ] Могу объяснить разницу `type` и `interface`.
-- [ ] Могу объяснить `unknown` vs `any`.
-- [ ] Могу объяснить зачем NestJS DI.
-- [ ] Могу объяснить ответственность Controller и Service.
-- [ ] Не использую `any` для обхода ошибок.
+- advanced TypeScript;
+- Node.js event loop/modules/streams/AbortController;
+- NestJS Guards/Interceptors/Filters/decorators/providers;
+- advanced PostgreSQL;
+- Redis;
+- NestJS gRPC;
+- RabbitMQ delivery details;
+- Outbox/Inbox implementation;
+- resilience patterns;
+- GraphQL;
+- MongoDB advanced;
+- Socket.IO/WebSocket;
+- Search/Manticore;
+- messaging/realtime/concurrency testing;
+- Kubernetes/Helm;
+- observability.
 
 ---
 
-# Stage 2. Domain Modelling
+# Completed Foundation
 
-Цель: перейти от CRUD-мышления к моделированию поведения.
+## Stage 0. Project Setup — DONE
 
-Добавить:
+- [x] NestJS application
+- [x] strict TypeScript
+- [x] ESLint/Prettier
+- [x] test setup
+- [x] documentation structure
 
-- [ ] User.
-- [ ] Workspace.
-- [ ] Project.
-- [ ] Task.
-- [ ] Comment.
+## Stage 1. TypeScript Fundamentals + Task API — DONE
 
-Изучить:
+- [x] Task domain model
+- [x] in-memory repository
+- [x] DI token
+- [x] TaskService
+- [x] REST CRUD
+- [x] Zod validation
+- [x] PATCH semantics
+- [x] filtering/sorting
+- [x] Swagger
+- [x] unit tests
+- [x] e2e tests
+- [x] lint/build/tests green
 
-- [ ] entity;
-- [ ] value object;
-- [ ] invariants;
-- [ ] encapsulation;
-- [ ] immutability;
-- [ ] domain errors;
-- [ ] state transitions;
-- [ ] discriminated unions;
-- [ ] composition over inheritance.
-
-Практика:
-
-- [ ] Реализовать контролируемую смену Task status.
-- [ ] Запретить невалидные переходы.
-- [ ] Убрать прямое изменение важных полей там, где нужны invariants.
-- [ ] Сделать явные domain errors.
-- [ ] Вернуть часть результатов через discriminated union.
-
-Контрольная точка:
-
-- [ ] Могу объяснить, почему entity не равна DTO.
-- [ ] Могу объяснить, когда class оправдан.
-- [ ] Понимаю отличие данных от поведения.
+Stage 1 считается завершённой базой. Дальше обучение не дробится на аналогичные микрозадачи.
 
 ---
 
-# Stage 3. PostgreSQL Persistence
+# Phase 2. Core Product + PostgreSQL
 
-Цель: заменить in-memory storage на реальное хранилище.
+## Цель
 
-- [ ] Поднять PostgreSQL.
-- [ ] Подключить ORM.
-- [ ] Создать migrations.
-- [ ] Создать таблицы.
-- [ ] Реализовать persistence для Task.
-- [ ] Реализовать persistence для Project.
-- [ ] Реализовать persistence для Workspace.
-- [ ] Реализовать persistence для Comment.
-- [ ] Добавить constraints.
-- [ ] Добавить indexes.
-- [ ] Добавить pagination.
-- [ ] Добавить transactions.
+Превратить Task API в первую настоящую часть NexusBoard:
 
-Изучить:
+```text
+Workspace
+  └── Project
+       └── Task
+```
 
-- [ ] migration lifecycle;
-- [ ] transaction boundary;
-- [ ] foreign key;
-- [ ] unique constraint;
-- [ ] index;
-- [ ] N+1;
-- [ ] pagination;
-- [ ] repository abstraction;
-- [ ] ORM model vs domain model.
+Данные должны сохраняться в PostgreSQL и переживать restart приложения.
 
-Контрольная точка:
+## Пользовательский результат
 
-- [ ] Могу объяснить, где должна начинаться и заканчиваться транзакция.
-- [ ] Могу объяснить, зачем нужен индекс.
-- [ ] Не использую ORM entity автоматически как DTO.
+- [ ] создать Workspace
+- [ ] получить свои Workspace
+- [ ] создать Project внутри Workspace
+- [ ] получить Projects Workspace
+- [ ] создать Task внутри Project
+- [ ] получить Tasks Project
+- [ ] обновлять Task
+- [ ] filtering/sorting/pagination
+- [ ] persistence после restart
 
----
+## Persistence и архитектура
 
-# Stage 4. Advanced TypeScript & Code Quality
+- [ ] спроектировать relations Workspace → Project → Task
+- [ ] PostgreSQL
+- [ ] выбрать persistence approach для NestJS
+- [ ] migrations
+- [ ] FK/unique/check constraints
+- [ ] indexes и composite indexes
+- [ ] pagination
+- [ ] transactions
+- [ ] PostgreSQL repository
+- [ ] убрать in-memory repository из production path
 
-Цель: перейти от базовой типизации к хорошему TypeScript design.
+## Практические темы
 
-Настроить:
+По необходимости:
 
-- [ ] `strict`.
-- [ ] `noUncheckedIndexedAccess`.
-- [ ] `exactOptionalPropertyTypes`.
-- [ ] `useUnknownInCatchVariables`.
+- domain modelling и invariants
+- ORM model vs domain model
+- raw SQL
+- connection pooling
+- EXPLAIN / EXPLAIN ANALYZE
+- isolation
+- row locking
+- optimistic locking
+- deadlocks
+- offset vs cursor pagination
+- advanced TypeScript
 
-Изучить:
+## Проверка
 
-- [ ] generics;
-- [ ] generic constraints;
-- [ ] `keyof`;
-- [ ] `typeof`;
-- [ ] indexed access types;
-- [ ] mapped types;
-- [ ] conditional types;
-- [ ] `infer`;
-- [ ] type guards;
-- [ ] branded types;
-- [ ] template literal types.
-
-Практика:
-
-- [ ] Убрать необоснованные `as`.
-- [ ] Убрать необоснованные non-null assertions.
-- [ ] Создать несколько полезных generic helpers.
-- [ ] Не создавать generic abstraction ради демонстрации generics.
-- [ ] Сделать type-safe result types.
-- [ ] Сделать type-safe event map в локальном приложении.
-
-Контрольная точка:
-
-- [ ] Могу объяснить generic constraint.
-- [ ] Могу написать type guard.
-- [ ] Понимаю опасность `as`.
-- [ ] Понимаю, когда сложная типизация ухудшает код.
+- [ ] PostgreSQL integration tests/Testcontainers
+- [ ] e2e Workspace → Project → Task
+- [ ] concurrency scenario для Task
+- [ ] query plan нетривиального запроса
 
 ---
 
-# Stage 5. Testing
+# Phase 3. Users, Auth, Sessions & Permissions
 
-Цель: сделать тестирование нормальной частью разработки.
+## Цель
 
-Unit:
+Добавить реального пользователя и связать его с Workspace.
 
-- [ ] Task entity tests.
-- [ ] TaskService tests.
-- [ ] Permission logic tests.
+- [ ] registration/login
+- [ ] access + refresh
+- [ ] refresh rotation
+- [ ] active sessions list
+- [ ] revoke current/selected/all except current/all
+- [ ] Workspace membership
+- [ ] Owner/Admin/Member
+- [ ] permission checks
 
-Integration:
+Практический фокус:
 
-- [ ] PostgreSQL integration tests.
-- [ ] Repository tests.
-- [ ] Transaction tests.
-
-E2E:
-
-- [ ] Task API.
-- [ ] Project API.
-- [ ] Workspace API.
-
-Инструменты:
-
-- [ ] Jest.
-- [ ] Testcontainers.
-- [ ] fixtures.
-- [ ] test builders.
-
-Patterns:
-
-- [ ] Builder Pattern на test data.
-- [ ] Object Mother — изучить и сравнить с Builder.
-
-Контрольная точка:
-
-- [ ] Понимаю разницу unit/integration/e2e.
-- [ ] Не мокирую всё подряд.
-- [ ] Могу объяснить, какие тесты дают настоящую ценность.
+- Nest Guards
+- custom decorators
+- authorization/RBAC
+- session lifecycle
+- security boundaries
+- secrets handling
 
 ---
 
-# Stage 6. Первое разделение на микросервисы
+# Phase 4. First Microservice Split + gRPC + GraphQL
 
-Цель: понять service boundaries и ownership.
+## Цель
 
-Выделить:
+Разделить систему на:
 
-- [ ] API Gateway.
-- [ ] Auth Service.
-- [ ] Project Service.
+```text
+API Gateway
+Auth Service
+Project Service
+```
 
-Определить:
+- [ ] отдельный runtime каждого сервиса
+- [ ] database-per-service
+- [ ] API Gateway
+- [ ] Gateway → Auth по gRPC
+- [ ] Gateway → Project по gRPC
+- [ ] no cross-service SQL
 
-- [ ] ownership данных;
-- [ ] API boundaries;
-- [ ] что остаётся внутри сервиса;
-- [ ] что становится контрактом.
+Не вводить промежуточный HTTP S2S только ради последующего переписывания.
 
-Правила:
+### gRPC practice
 
-- [ ] У каждого сервиса отдельная БД.
-- [ ] Нет cross-service JOIN.
-- [ ] Нет прямого доступа к чужой БД.
-- [ ] Shared library не содержит доменную логику конкретного сервиса.
+- [ ] NestJS gRPC
+- [ ] unary calls
+- [ ] metadata
+- [ ] deadlines
+- [ ] error mapping
+- [ ] protobuf compatibility/evolution
+- [ ] streaming по подходящему сценарию
 
-Контрольная точка:
+### GraphQL
 
-- [ ] Могу объяснить, почему Auth и Project — разные сервисы.
-- [ ] Могу объяснить недостатки слишком мелких сервисов.
-- [ ] Могу объяснить, что такое bounded context на практическом уровне.
-
----
-
-# Stage 7. gRPC
-
-Цель: построить явное синхронное S2S взаимодействие.
-
-- [ ] Добавить `.proto`.
-- [ ] Gateway -> Auth по gRPC.
-- [ ] Gateway -> Project по gRPC.
-- [ ] Добавить error mapping.
-- [ ] Добавить deadlines.
-- [ ] Добавить metadata.
-- [ ] Версионировать contract без breaking changes.
-
-Изучить:
-
-- [ ] protobuf;
-- [ ] serialization;
-- [ ] unary RPC;
-- [ ] streaming conceptually;
-- [ ] deadlines;
-- [ ] backward compatibility;
-- [ ] transport DTO.
-
-Контрольная точка:
-
-- [ ] Могу объяснить REST vs gRPC.
-- [ ] Могу объяснить, почему domain entity не должна быть gRPC contract.
+- [ ] Workspace Dashboard
+- [ ] resolver authorization
+- [ ] DataLoader
+- [ ] воспроизвести и исправить N+1
 
 ---
 
-# Stage 8. Authentication & Device Sessions
+# Phase 5. Event-Driven Core + RabbitMQ + Outbox/Inbox
 
-Цель: реализовать production-like модель пользовательских сессий.
+## Цель
 
-- [ ] Registration.
-- [ ] Login.
-- [ ] Password hashing.
-- [ ] Access JWT.
-- [ ] Refresh token.
-- [ ] Refresh rotation.
-- [ ] Session entity/table.
-- [ ] Device metadata.
-- [ ] Current session logout.
-- [ ] Selected session revoke.
-- [ ] Revoke all except current.
-- [ ] Revoke all sessions.
-- [ ] Active sessions list.
-- [ ] Refresh token reuse detection.
+Добавить асинхронные integration events сразу там, где они нужны.
 
-Изучить:
+- [ ] TaskCreated
+- [ ] TaskAssigned
+- [ ] TaskStatusChanged
+- [ ] TaskCommented
+- [ ] UserMentioned
 
-- [ ] JWT structure;
-- [ ] claims;
-- [ ] `sub`;
-- [ ] `sid`;
-- [ ] `jti`;
-- [ ] access lifetime;
-- [ ] refresh lifetime;
-- [ ] token rotation;
-- [ ] token revocation;
-- [ ] refresh token hashing;
-- [ ] asymmetric signing.
+Практический RabbitMQ-фокус:
 
-Контрольная точка:
+- [ ] topology/routing
+- [ ] prefetch
+- [ ] competing consumers
+- [ ] retry topology
+- [ ] DLQ
+- [ ] durability
+- [ ] ordering limitations
+- [ ] event contracts/versioning
 
-- [ ] Понимаю, почему JWT не отменяет необходимость server-side session state.
-- [ ] Могу объяснить logout при JWT.
-- [ ] Могу объяснить refresh token rotation.
+Reliability:
+
+- [ ] Transactional Outbox
+- [ ] Outbox Worker
+- [ ] cleanup
+- [ ] idempotent consumers
+- [ ] Inbox там, где нужна consumer-side atomicity
+- [ ] duplicate delivery tests
 
 ---
 
-# Stage 9. GraphQL
+# Phase 6. Chat + Socket.IO + MongoDB + Redis
 
-Цель: использовать GraphQL там, где он решает реальную read-задачу.
+## Цель
 
-- [ ] Добавить GraphQL endpoint.
-- [ ] Сделать Workspace dashboard.
-- [ ] Агрегировать Project + Auth data.
-- [ ] Добавить resolver authorization.
-- [ ] Добавить DataLoader.
-- [ ] Продемонстрировать и исправить N+1.
+Реализовать полноценный realtime chat. Это один из главных практических блоков проекта.
 
-Изучить:
+### Chat Service
 
-- [ ] schema;
-- [ ] resolver;
-- [ ] query;
-- [ ] mutation;
-- [ ] DataLoader;
-- [ ] N+1;
-- [ ] GraphQL errors.
+- [ ] Chat Room
+- [ ] Chat Message
+- [ ] MongoDB
+- [ ] history/pagination
+- [ ] indexes
+- [ ] mentions
+- [ ] aggregation query
 
-Контрольная точка:
+### Socket.IO
 
-- [ ] Могу объяснить, почему весь REST не нужно дублировать GraphQL.
+- [ ] WebSocket basics
+- [ ] Socket.IO lifecycle
+- [ ] events
+- [ ] rooms
+- [ ] namespaces
+- [ ] acknowledgements
+- [ ] reconnect
+- [ ] heartbeat
+- [ ] authentication handshake
+- [ ] room authorization
+- [ ] typing
+- [ ] presence
+- [ ] delivery semantics
 
----
+### Redis
 
-# Stage 10. RabbitMQ
+- [ ] Pub/Sub
+- [ ] Socket.IO Redis Adapter
+- [ ] несколько Gateway instances
+- [ ] horizontal scaling
+- [ ] sticky sessions
 
-Цель: перейти к event-driven interaction.
-
-- [ ] Поднять RabbitMQ.
-- [ ] Создать exchange.
-- [ ] Создать queues.
-- [ ] Создать routing keys.
-- [ ] Публиковать TaskCreated.
-- [ ] Публиковать TaskAssigned.
-- [ ] Публиковать TaskStatusChanged.
-- [ ] Реализовать consumer.
-- [ ] Настроить ack/nack.
-- [ ] Настроить retry.
-- [ ] Настроить DLQ.
-- [ ] Проверить duplicate delivery.
-
-Изучить:
-
-- [ ] command;
-- [ ] domain event;
-- [ ] integration event;
-- [ ] exchange;
-- [ ] queue;
-- [ ] routing;
-- [ ] ack;
-- [ ] nack;
-- [ ] prefetch;
-- [ ] competing consumers;
-- [ ] at-least-once delivery.
-
-Контрольная точка:
-
-- [ ] Могу объяснить event vs command.
-- [ ] Могу объяснить, почему RabbitMQ может доставить событие повторно.
+Дополнительно по реальным сценариям: Cache Aside, TTL/invalidation, stampede, distributed locks, Streams, rate limiting.
 
 ---
 
-# Stage 11. Transactional Outbox & Inbox
+# Phase 7. Notifications + Distributed Reliability Lab
 
-Цель: обеспечить надёжность DB + broker interaction.
+## Notification Service
 
-- [ ] Реализовать outbox table.
-- [ ] Сохранять domain change и outbox message в одной транзакции.
-- [ ] Сделать Outbox Worker.
-- [ ] Публиковать события из Outbox.
-- [ ] Сделать retry публикации.
-- [ ] Продумать cleanup.
-- [ ] Реализовать idempotent consumer.
-- [ ] Добавить Inbox там, где требуется атомарность consumer side.
-- [ ] Проверить обработку duplicate event.
+- [ ] отдельная PostgreSQL DB
+- [ ] Task/Comment/Mention/Chat consumers
+- [ ] Created/Delivered/Read
+- [ ] mark as read
+- [ ] realtime notifications
 
-Изучить:
+## Failure Lab
 
-- [ ] dual write problem;
-- [ ] outbox;
-- [ ] inbox;
-- [ ] idempotency;
-- [ ] exactly-once illusion;
-- [ ] eventual consistency.
+Намеренно проверить:
 
-Контрольная точка:
+- [ ] consumer падает до ACK
+- [ ] consumer падает после side effect до ACK
+- [ ] duplicate event
+- [ ] RabbitMQ unavailable
+- [ ] gRPC timeout/unavailable
+- [ ] PostgreSQL unavailable
+- [ ] Redis unavailable
+- [ ] concurrent Task update
 
-- [ ] Могу объяснить, почему `save(); publish();` ненадёжно.
-- [ ] Могу объяснить, откуда появляются дубли.
+Применить:
 
----
+- [ ] retry
+- [ ] exponential backoff
+- [ ] jitter
+- [ ] circuit breaker
+- [ ] graceful degradation
+- [ ] DLQ
+- [ ] optimistic locking
+- [ ] compensation
 
-# Stage 12. Notification Service
-
-Цель: вынести пользовательские уведомления в event-driven сервис.
-
-- [ ] Создать Notification Service.
-- [ ] Добавить отдельную PostgreSQL DB.
-- [ ] Consumer TaskAssigned.
-- [ ] Consumer TaskCommented.
-- [ ] Consumer UserMentioned.
-- [ ] Consumer TaskStatusChanged.
-- [ ] Хранить Created/Delivered/Read.
-- [ ] Получать notifications через Gateway.
-- [ ] Mark as read.
-- [ ] Mark all as read.
-
-Контрольная точка:
-
-- [ ] Project Service не знает о внутренней реализации Notification Service.
+Saga — только если появляется реальный распределённый бизнес-процесс.
 
 ---
 
-# Stage 13. MongoDB + Chat Service
+# Phase 8. Search Service + Manticore
 
-Цель: изучить документное хранилище на подходящей задаче.
+## Цель
 
-- [ ] Создать Chat Service.
-- [ ] Поднять MongoDB.
-- [ ] Создать rooms.
-- [ ] Создать messages.
-- [ ] Добавить message history.
-- [ ] Добавить pagination.
-- [ ] Добавить indexes.
-- [ ] Добавить mentions.
-- [ ] Добавить aggregation query.
+Единый полнотекстовый поиск по Projects, Tasks, Comments и Chat Messages.
 
-Изучить:
+- [ ] Manticore
+- [ ] Search Service
+- [ ] indexing events через RabbitMQ
+- [ ] Tasks/Projects/Comments/Chat Messages
+- [ ] full-text query
+- [ ] type filters
+- [ ] rebuild/reindex
 
-- [ ] document model;
-- [ ] embedding;
-- [ ] references;
-- [ ] indexes;
-- [ ] aggregation pipeline;
-- [ ] pagination;
-- [ ] consistency.
+Изучить на практике:
 
-Контрольная точка:
-
-- [ ] Могу объяснить, почему здесь MongoDB уместна.
-- [ ] Могу объяснить, когда PostgreSQL был бы лучше.
+- [ ] inverted index
+- [ ] tokenization
+- [ ] relevance/ranking
+- [ ] indexing pipeline
+- [ ] search projection
+- [ ] eventual consistency
 
 ---
 
-# Stage 14. Socket.IO
+# Phase 9. Observability + k3s + Helm + Operations
 
-Цель: добавить realtime взаимодействие.
+## Observability
 
-- [ ] Подключить Socket.IO к API Gateway.
-- [ ] Authentication handshake.
-- [ ] Rooms.
-- [ ] Chat message events.
-- [ ] Notification events.
-- [ ] Task update events.
-- [ ] Typing event.
-- [ ] Presence.
-- [ ] Reconnect handling.
-- [ ] Ack для нужных событий.
+- [ ] structured logs
+- [ ] correlation ID
+- [ ] trace ID
+- [ ] OpenTelemetry
+- [ ] spans/traces
+- [ ] metrics
+- [ ] Prometheus
+- [ ] Grafana
+- [ ] HTTP → Gateway → gRPC trace
+- [ ] RabbitMQ processing trace
 
-Контрольная точка:
+## k3s
 
-- [ ] Понимаю, что WebSocket не заменяет RabbitMQ.
-- [ ] Понимаю lifecycle Socket.IO connection.
+Развернуть Gateway/Auth/Project/Chat/Notification/Search и инфраструктуру.
 
----
+Практически изучить:
 
-# Stage 15. Redis
+- [ ] Namespace
+- [ ] Deployment
+- [ ] Service
+- [ ] Ingress
+- [ ] ConfigMap
+- [ ] Secret
+- [ ] PVC
+- [ ] StatefulSet
+- [ ] Job/CronJob
+- [ ] startup/readiness/liveness
+- [ ] requests/limits
 
-## 15.1. Redis Cache
+## Helm
 
-- [ ] Поднять Redis.
-- [ ] Реализовать Cache Aside.
-- [ ] Выбрать реальный cached use case.
-- [ ] Настроить TTL.
-- [ ] Реализовать invalidation.
-- [ ] Смоделировать stale cache.
-- [ ] Смоделировать cache stampede.
-- [ ] Изучить distributed lock.
+- [ ] chart structure/templates/values
+- [ ] dev configuration
+- [ ] resources/probes/replicas
+- [ ] install/upgrade/rollback
 
-## 15.2. Redis Pub/Sub
+## Headlamp / Operations
 
-- [ ] Запустить несколько API Gateway replicas локально или в k3s.
-- [ ] Подключить Socket.IO Redis Adapter.
-- [ ] Проверить доставку события пользователю при разных Gateway instances.
-
-Контрольная точка:
-
-- [ ] Могу объяснить разницу Redis Cache и Redis Pub/Sub.
-
----
-
-# Stage 16. Search Service + Manticore
-
-Цель: реализовать отдельный search projection.
-
-- [ ] Поднять Manticore Search.
-- [ ] Создать Search Service.
-- [ ] Индексировать Tasks.
-- [ ] Индексировать Projects.
-- [ ] Индексировать Comments.
-- [ ] Индексировать Chat Messages.
-- [ ] Обновлять индекс через RabbitMQ.
-- [ ] Реализовать full-text query.
-- [ ] Реализовать type filters.
-- [ ] Реализовать rebuild индекса.
-
-Изучить:
-
-- [ ] inverted index;
-- [ ] tokenization;
-- [ ] ranking;
-- [ ] filters;
-- [ ] search projections;
-- [ ] eventual consistency.
-
-Дополнительное упражнение:
-
-- [ ] Сравнить Manticore и Elasticsearch концептуально.
-- [ ] При желании повторить ограниченный use case на Elasticsearch.
+- [ ] CrashLoopBackOff
+- [ ] failing readiness
+- [ ] bad configuration
+- [ ] broken Service
+- [ ] OOMKilled
+- [ ] Pod recreation
+- [ ] logs/events
 
 ---
 
-# Stage 17. Distributed Systems Failure Lab
+# Phase 10. Final Architecture Review
 
-Цель: научиться проектировать не только happy path.
-
-Сценарии:
-
-- [ ] RabbitMQ недоступен.
-- [ ] Consumer падает до ACK.
-- [ ] Consumer падает после side effect до ACK.
-- [ ] Один event доставлен дважды.
-- [ ] gRPC service отвечает слишком долго.
-- [ ] gRPC service недоступен.
-- [ ] DB временно недоступна.
-- [ ] Redis недоступен.
-- [ ] Search недоступен.
-- [ ] Socket client reconnects.
-- [ ] Два пользователя одновременно изменяют Task.
-
-Изучить и применить:
-
-- [ ] timeout;
-- [ ] deadline;
-- [ ] retry;
-- [ ] exponential backoff;
-- [ ] jitter;
-- [ ] circuit breaker;
-- [ ] optimistic locking;
-- [ ] idempotency;
-- [ ] graceful degradation;
-- [ ] DLQ;
-- [ ] distributed lock.
+- [ ] architecture diagram
+- [ ] data ownership
+- [ ] gRPC contracts
+- [ ] event contracts
+- [ ] retries/deadlines
+- [ ] idempotency
+- [ ] Outbox/Inbox
+- [ ] session security
+- [ ] realtime scaling
+- [ ] search rebuild
+- [ ] observability
+- [ ] graceful degradation
+- [ ] deployment
+- [ ] актуализировать документацию
 
 ---
 
-# Stage 18. Saga
+# Дополнительные темы
 
-Цель: изучить coordination распределённых операций только после появления подходящего сценария.
+Не являются обязательными:
 
-- [ ] Найти реальную cross-service business operation.
-- [ ] Смоделировать partial failure.
-- [ ] Реализовать choreography variant.
-- [ ] Проанализировать недостатки.
-- [ ] Реализовать orchestration variant или прототип.
-- [ ] Сравнить подходы.
-- [ ] Зафиксировать выбранное решение.
+- [ ] Kafka
+- [ ] Elasticsearch
+- [ ] CQRS
+- [ ] Event Sourcing
+- [ ] OpenAPI client generation
+- [ ] consumer-driven contract testing
+- [ ] Feature Flags
+- [ ] Service Mesh
+- [ ] Chaos Engineering
+- [ ] Kubernetes autoscaling
+- [ ] Distributed scheduler
 
-Контрольная точка:
-
-- [ ] Saga не используется для простого CRUD.
-
----
-
-# Stage 19. Observability
-
-Цель: научиться понимать, что происходит внутри распределённой системы.
-
-- [ ] Structured logging.
-- [ ] Correlation ID.
-- [ ] Trace ID.
-- [ ] OpenTelemetry.
-- [ ] Metrics.
-- [ ] Prometheus.
-- [ ] Grafana.
-- [ ] Distributed tracing.
-- [ ] Trace HTTP -> Gateway -> gRPC -> service.
-- [ ] Trace event processing через RabbitMQ.
-
-Контрольная точка:
-
-- [ ] Можно проследить пользовательскую операцию через несколько сервисов.
-
----
-
-# Stage 20. Docker Compose
-
-Цель: получить воспроизводимый локальный environment.
-
-- [ ] Dockerfile для сервисов.
-- [ ] Docker Compose.
-- [ ] PostgreSQL instances.
-- [ ] MongoDB.
-- [ ] RabbitMQ.
-- [ ] Redis.
-- [ ] Manticore.
-- [ ] Healthchecks.
-- [ ] Volumes.
-- [ ] Networks.
-
----
-
-# Stage 21. k3s
-
-Цель: перенести систему в Kubernetes.
-
-- [ ] Установить k3s.
-- [ ] Создать Namespace.
-- [ ] Deploy API Gateway.
-- [ ] Deploy Auth Service.
-- [ ] Deploy Project Service.
-- [ ] Deploy Chat Service.
-- [ ] Deploy Notification Service.
-- [ ] Deploy Search Service.
-- [ ] Deploy databases.
-- [ ] Deploy RabbitMQ.
-- [ ] Deploy Redis.
-- [ ] Deploy Manticore.
-- [ ] ConfigMap.
-- [ ] Secrets.
-- [ ] PersistentVolumeClaims.
-- [ ] Services.
-- [ ] Ingress.
-- [ ] StatefulSets там, где нужны.
-- [ ] startupProbe.
-- [ ] readinessProbe.
-- [ ] livenessProbe.
-- [ ] Resource requests.
-- [ ] Resource limits.
-
----
-
-# Stage 22. Helm
-
-Цель: перестать управлять Kubernetes manifests вручную.
-
-- [ ] Создать Helm chart.
-- [ ] Разделить templates.
-- [ ] Настроить values.
-- [ ] Отделить local/dev config.
-- [ ] Поддержать replicas.
-- [ ] Поддержать resources.
-- [ ] Поддержать probes.
-- [ ] Установить систему через Helm.
-- [ ] Выполнить upgrade.
-- [ ] Выполнить rollback.
-
----
-
-# Stage 23. Headlamp & Operational Practice
-
-Цель: научиться наблюдать и диагностировать систему.
-
-Через Headlamp:
-
-- [ ] Найти Pod.
-- [ ] Посмотреть logs.
-- [ ] Посмотреть events.
-- [ ] Найти Deployment.
-- [ ] Изменить replica count.
-- [ ] Проверить Services.
-- [ ] Проверить ConfigMaps.
-- [ ] Проверить Secrets.
-- [ ] Проверить PVC.
-- [ ] Удалить Pod и наблюдать восстановление.
-- [ ] Смоделировать failing readiness probe.
-- [ ] Найти причину CrashLoopBackOff.
-
----
-
-# Stage 24. Финальный Architecture Review
-
-- [ ] Нарисовать актуальную архитектурную схему.
-- [ ] Проверить ownership всех данных.
-- [ ] Проверить межсервисные контракты.
-- [ ] Проверить event contracts.
-- [ ] Проверить retries.
-- [ ] Проверить idempotency.
-- [ ] Проверить Outbox/Inbox.
-- [ ] Проверить JWT/session security.
-- [ ] Проверить observability.
-- [ ] Проверить graceful degradation.
-- [ ] Проверить deployment.
-- [ ] Обновить functional specification.
-- [ ] Обновить technical specification.
-- [ ] Удалить устаревшие решения из документации.
-
----
-
-# Дополнительные темы после основной программы
-
-Эти темы не являются обязательными для основной roadmap.
-
-- [ ] Kafka.
-- [ ] Elasticsearch.
-- [ ] CQRS.
-- [ ] Event Sourcing.
-- [ ] OpenAPI client generation.
-- [ ] Contract testing.
-- [ ] Rate limiting.
-- [ ] API versioning.
-- [ ] Feature Flags.
-- [ ] Secrets management.
-- [ ] Service Mesh.
-- [ ] Chaos Engineering.
-- [ ] Kubernetes autoscaling.
-- [ ] Distributed scheduler.
-
-Главное правило: дополнительная технология появляется только после ответа на вопрос:
-
-> Какую конкретную проблему текущей системы мы хотим решить?
+> Дополнительная технология появляется только если можно назвать конкретную проблему NexusBoard, которую она должна решить.
