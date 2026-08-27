@@ -1,8 +1,8 @@
-﻿import type { TaskRepository } from './task.repository';
-import type { Task } from '../domain/task';
+import type { TaskRepository } from '../../application/ports/task.repository';
+import type { Task } from '../../domain/task';
 import { Injectable } from '@nestjs/common';
 import type { TaskSearchOptions } from '../../application/task-search-options';
-import { TASK_PRIORITY_WEIGHT } from '../domain/task-priority';
+import { TASK_PRIORITY_WEIGHT } from '../../domain/task-priority';
 
 @Injectable()
 export class InMemoryTaskRepository implements TaskRepository {

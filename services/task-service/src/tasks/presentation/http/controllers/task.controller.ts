@@ -11,10 +11,10 @@
   Post,
   Query,
 } from '@nestjs/common';
-import { TaskService } from '../services/task.service';
-import type { Task } from '../domain/task';
+import { TaskService } from '../../../application/task.service';
+import type { Task } from '../../../domain/task';
 import { type CreateTaskInput, createTaskSchema } from '../schema/create-task.schema';
-import { ZodValidationPipe } from '../../pipes/zod-validation.pipe';
+import { ZodValidationPipe } from '../zod-validation.pipe';
 import { ApiTags } from '@nestjs/swagger';
 import { type UpdateTaskInput, updateTaskSchema } from '../schema/update-task.schema';
 import { type TaskQuery, taskQuerySchema } from '../schema/task-query.schema';

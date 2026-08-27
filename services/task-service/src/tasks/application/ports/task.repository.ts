@@ -1,5 +1,5 @@
-﻿import type { Task } from '../domain/task';
-import type { TaskSearchOptions } from '../../application/task-search-options';
+import type { Task } from '../../domain/task';
+import type { TaskSearchOptions } from '../task-search-options';
 
 export interface TaskRepository {
   save(task: Task): void;

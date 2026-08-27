@@ -1,5 +1,5 @@
 import { InMemoryTaskRepository } from './in-memory-task-repository';
-import type { Task } from '../domain/task';
+import type { Task } from '../../domain/task';
 
 const createTask = (
   id: string,

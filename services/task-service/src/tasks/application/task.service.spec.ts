@@ -1,5 +1,5 @@
 import { TaskService } from './task.service';
-import type { TaskRepository } from '../repository/task.repository';
+import type { TaskRepository } from './ports/task.repository';
 import type { Task } from '../domain/task';
 
 describe('TaskService', () => {

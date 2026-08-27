@@ -1,5 +1,5 @@
 ﻿import { z } from 'zod';
-import { TASK_PRIORITIES } from '../domain/task-priority';
+import { TASK_PRIORITIES } from '../../../domain/task-priority';
 
 export const createTaskSchema = z.object({
   title: z.string().trim().min(1),

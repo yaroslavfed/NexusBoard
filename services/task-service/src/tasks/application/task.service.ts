@@ -1,11 +1,11 @@
 ﻿import type { Task } from '../domain/task';
 import { Inject, Injectable } from '@nestjs/common';
-import type { TaskRepository } from '../repository/task.repository';
+import type { TaskRepository } from './ports/task.repository';
 import { TASK_REPOSITORY } from '../task.constants';
-import type { CreateTaskInput } from '../schema/create-task.schema';
-import type { UpdateTaskInput } from '../schema/update-task.schema';
-import type { TaskQuery } from '../schema/task-query.schema';
-import type { TaskSearchOptions } from '../../application/task-search-options';
+import type { CreateTaskInput } from '../presentation/http/schema/create-task.schema';
+import type { UpdateTaskInput } from '../presentation/http/schema/update-task.schema';
+import type { TaskQuery } from '../presentation/http/schema/task-query.schema';
+import type { TaskSearchOptions } from './task-search-options';
 
 @Injectable()
 export class TaskService {

@@ -1,5 +1,5 @@
-﻿import type { TaskStatus } from '../tasks/domain/task-status';
-import type { TaskPriority } from '../tasks/domain/task-priority';
+import type { TaskStatus } from '../domain/task-status';
+import type { TaskPriority } from '../domain/task-priority';
 
 export const TASK_SORT_FIELDS = ['createdAt', 'priority'] as const;
 export type TaskSortField = (typeof TASK_SORT_FIELDS)[number];
