@@ -103,57 +103,118 @@ Stage 1 считается завершённой базой. Дальше об�
 
 ```text
 Workspace
-  └── Project
+  ├── WorkspaceMember
+  └── Project? / standalone Project
+       ├── ProjectMember
        └── Task
+
+Task.projectId = null
+  └── virtual Unassigned collection
 ```
 
 Данные должны сохраняться в PostgreSQL и переживать restart приложения.
 
+## Зафиксированные бизнес-решения
+
+### Workspace
+
+- [x] creator автоматически становится Workspace Owner
+- [x] Workspace имеет `Active | Archived`
+- [x] при archive выставляется `archivedAt`
+- [x] Workspace может быть без Projects, если остаются members
+- [x] Workspace без Projects и без members автоматически архивируется
+- [x] archive и hard delete — разные операции
+- [x] name уникален
+
+### Project
+
+- [x] Project может иметь `workspaceId = null`
+- [x] creator автоматически становится единственным Owner
+- [x] роли Project: `Owner | Member | Observer`
+- [x] Owner может передать ownership
+- [x] при удалении Owner ownership получает oldest Member
+- [x] если Member нет — oldest Observer
+- [x] если других участников нет — Project архивируется
+- [x] Project можно перемещать между Workspace
+- [x] участники Project получают доступ к destination Workspace
+- [x] Project имеет `Active | Archived` + `archivedAt`
+- [x] имя уникально внутри Workspace
+- [x] standalone Project names уникальны между standalone Projects
+- [x] archive и hard delete — разные операции
+
+### Task
+
+- [x] `projectId` nullable
+- [x] `projectId = null` означает Unassigned Task
+- [x] `Unassigned` — virtual collection, а не реальный Project
+- [x] статусы: `Todo | In Progress | Resolved | Closed | Rejected`
+- [x] terminal states: `Closed | Rejected`
+- [x] archive Project: `Resolved → Closed`
+- [x] archive Project: `Todo/In Progress → Rejected`
+- [x] `createdAt` immutable, `updatedAt` automatic
+- [x] planned start/due dates
+- [x] optimistic concurrency закладывается с Phase 2
+
+### User history rule
+
+- [x] deleted account остаётся в `users` с прежним `id`
+- [x] status становится `Disabled`
+- [x] personal data/credentials/sessions очищаются
+- [x] historical references сохраняются
+- [x] повторная регистрация создаёт новый `userId`
+
 ## Пользовательский результат
 
 - [ ] создать Workspace
-- [ ] получить свои Workspace
+- [ ] получить Workspace
+- [ ] управлять Workspace members
 - [ ] создать Project внутри Workspace
-- [ ] получить Projects Workspace
+- [ ] создать standalone Project
+- [ ] переместить Project между Workspace
+- [ ] управлять Project members
+- [ ] передать ownership
 - [ ] создать Task внутри Project
-- [ ] получить Tasks Project
-- [ ] обновлять Task
+- [ ] создать Unassigned Task
+- [ ] назначить Unassigned Task в Project
+- [ ] получить Tasks
+- [ ] обновлять Task по state machine
 - [ ] filtering/sorting/pagination
+- [ ] archive Workspace/Project/Task
+- [ ] отдельный hard delete contract без использования frontend по умолчанию
 - [ ] persistence после restart
 
 ## Persistence и архитектура
 
-- [ ] спроектировать relations Workspace → Project → Task
+- [ ] таблицы `workspaces`, `workspace_members`, `projects`, `project_members`, `tasks`
 - [ ] PostgreSQL
 - [ ] выбрать persistence approach для NestJS
 - [ ] migrations
 - [ ] FK/unique/check constraints
+- [ ] partial unique index для standalone Project names
 - [ ] indexes и composite indexes
+- [ ] transactions для create + membership
+- [ ] transaction для ownership transfer
+- [ ] transaction для archive Project + Task finalization
+- [ ] transaction для user-deletion ownership fallback
+- [ ] optimistic locking для Task
 - [ ] pagination
-- [ ] transactions
 - [ ] PostgreSQL repository
 - [ ] убрать in-memory repository из production path
 
 ## Практические темы
 
-По необходимости:
-
-- domain modelling и invariants
-- ORM model vs domain model
-- raw SQL
-- connection pooling
-- EXPLAIN / EXPLAIN ANALYZE
-- isolation
-- row locking
-- optimistic locking
-- deadlocks
-- offset vs cursor pagination
-- advanced TypeScript
+По необходимости: domain modelling/invariants, ORM vs domain model, raw SQL, connection pooling, EXPLAIN, isolation, row locking, optimistic locking, deadlocks, offset vs cursor pagination, advanced TypeScript.
 
 ## Проверка
 
 - [ ] PostgreSQL integration tests/Testcontainers
 - [ ] e2e Workspace → Project → Task
+- [ ] e2e Unassigned → Project
+- [ ] ownership transfer tests
+- [ ] owner deletion fallback tests
+- [ ] archive Project state-transition tests
+- [ ] Workspace auto-archive test
+- [ ] Project move/access recalculation test
 - [ ] concurrency scenario для Task
 - [ ] query plan нетривиального запроса
 

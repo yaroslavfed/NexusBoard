@@ -388,7 +388,7 @@ Frontend должен выглядеть как современное SaaS-пр
 - единая система цветов
 - понятные primary/secondary/destructive actions
 - toast notifications
-- skeleton loading
+- loading states без визуального мерцания
 - empty states
 - error states
 - confirm dialog для destructive действий
@@ -406,17 +406,37 @@ Frontend должен выглядеть как современное SaaS-пр
 
 ## 13. Loading states
 
-Не использовать простой `Loading...`, если можно показать skeleton соответствующего контента.
+Главная цель loading UX — **не ломать визуальную стабильность интерфейса**.
 
-Например:
+Не заменять уже отображённый контент skeleton-ами при каждом refetch, invalidation или коротком обновлении данных.
+
+Различать initial cold load, background refetch, mutation in progress и long operation.
+
+Правила:
+
+- skeleton допустим прежде всего на первом открытии экрана, когда данных ещё никогда не было;
+- если данные уже отображаются, background refetch не должен убирать их с экрана;
+- при коротком refetch сохранять предыдущие данные и при необходимости показывать маленький spinner/progress indicator в локальном месте;
+- skeleton не должен мигать на доли секунды;
+- для быстрых операций предпочтительнее локальный spinner на кнопке/toolbar/обновляемом блоке;
+- при mutation блокировать только реально затронутые controls, а не весь экран;
+- не показывать fullscreen loading для локального обновления;
+- использовать TanStack Query так, чтобы stale/previous data оставались видимыми во время refetch;
+- `isFetching` не означает, что нужно скрыть уже загруженный контент;
+- loading state должен сохранять layout и не вызывать скачки.
+
+Плохо:
 
 ```text
-Task Skeleton
-Task Skeleton
-Task Skeleton
+данные видны → invalidateQueries → весь список превращается в skeleton → данные снова видны
 ```
 
-Интерфейс не должен заметно прыгать после загрузки данных.
+Хорошо:
+
+```text
+данные остаются видимыми → локальный spinner → данные обновляются без моргания
+```
+
 
 ---
 
@@ -529,6 +549,20 @@ Avatar
 ```
 
 Не создавать собственный аналог готового компонента без причины.
+
+### Select / Combobox policy
+
+Для основных пользовательских форм не использовать нативный desktop `<select>` как финальный UI, если нужен обычный SaaS-style selector.
+
+Предпочитать:
+
+- `Select` из shadcn-vue для небольшого фиксированного набора;
+- `Popover + Command` / Combobox pattern для searchable списка;
+- `DropdownMenu` только для action menu, а не как замена form select.
+
+Компонент выбора должен визуально соответствовать общей design system, корректно работать с keyboard/focus, помещаться на mobile и не выглядеть как стандартный OS combobox.
+
+Нативные controls допустимы только при осознанной UX/accessibility причине.
 
 ---
 
@@ -1123,6 +1157,63 @@ Analytics
 
 ---
 
+## 48.1. Workspace / Project / Task — frontend contract
+
+При реализации Phase 2 frontend обязан считать backend единственным source of truth для бизнес-правил.
+
+### Workspace
+
+- создание Workspace;
+- creator ownership приходит от backend;
+- отображение members, Projects, Active/Archived;
+- Archive — отдельное действие;
+- hard delete не показывать обычному пользователю, пока не появится отдельный admin UX;
+- не вычислять auto-archive на клиенте.
+
+### Project
+
+- Project может быть внутри Workspace или standalone;
+- creator становится Owner на backend;
+- роли: Owner/Member/Observer;
+- ownership transfer — отдельный action;
+- Project можно перемещать между Workspace;
+- Archive и hard delete — разные actions;
+- при archive frontend не переводит Tasks сам — он получает итоговое состояние от backend.
+
+### Unassigned
+
+`Unassigned` — виртуальная коллекция, **не настоящий Project**.
+
+Frontend:
+
+- показывает её только для Tasks с `projectId = null`;
+- не создаёт Unassigned Project через API;
+- не показывает rename/archive/delete/settings как для Project;
+- после назначения Project обновляет UI по успешному backend response.
+
+### Task state machine
+
+```text
+Todo | In Progress | Resolved | Closed | Rejected
+```
+
+Frontend не должен изобретать собственные переходы. `Closed` и `Rejected` отображаются frozen, но backend остаётся security/business boundary.
+
+### Deleted user
+
+Исторический deleted user продолжает отображаться по прежнему `userId`; avatar заменяется на Deleted User placeholder. Frontend не пытается связать старый `userId` с новым аккаунтом по email/name.
+
+### Нельзя
+
+- дублировать cascade archive rules на клиенте;
+- вычислять нового Project Owner на frontend;
+- считать Unassigned реальным Project;
+- использовать hard delete вместо Archive;
+- восстанавливать terminal Task только изменением client state.
+
+
+---
+
 ## 49. Этапы развития frontend
 
 ### Этап 1. Application shell и Task CRUD
@@ -1231,6 +1322,26 @@ Analytics
 
 ---
 
+## 49.1. Visual quality gate для агента
+
+Перед завершением frontend-задачи агент обязан отдельно проверить визуальное качество, а не только функциональность.
+
+Проверить:
+
+- не остались ли нативные OS-looking select/combobox controls там, где должен использоваться shadcn-vue;
+- не заменяется ли уже загруженный контент skeleton-ами при background refetch;
+- нет ли мерцания при query invalidation;
+- локальные mutations используют локальные spinner/disabled states;
+- dialog, popover, select и command имеют единый внешний вид;
+- active/archived/terminal states визуально различимы;
+- mobile и desktop используют одинаковую семантику действий;
+- frontend не додумывает backend cascade/ownership/membership rules.
+
+Если интерфейс функционально работает, но выглядит как набор browser-native controls или заметно моргает при обычных обновлениях, feature не считается завершённой.
+
+
+---
+
 ## 50. Definition of Done для frontend feature
 
 Frontend часть feature считается завершённой, когда:
@@ -1238,11 +1349,11 @@ Frontend часть feature считается завершённой, когд�
 - пользователь может выполнить основной сценарий
 - запросы используют единый API layer
 - TypeScript не содержит ошибок
-- loading state реализован
+- loading state реализован без лишнего flicker/skeleton replacement
 - error state реализован
 - empty state реализован, если применимо
 - success feedback реализован
-- UI соответствует существующей design system
+- UI соответствует существующей design system и не использует случайные OS-native controls
 - нет дублирования backend business logic
 - нет прямого обращения к внутреннему микросервису
 - нет очевидной unnecessary abstraction

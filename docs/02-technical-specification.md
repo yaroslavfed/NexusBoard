@@ -149,16 +149,23 @@ Gateway не должен:
 - user_credentials;
 - user_sessions.
 
+При удалении аккаунта `users.id` сохраняется для исторических связей. Пользователь переводится в `Disabled`, credentials/sessions и персональные данные очищаются. Исторические сущности продолжают ссылаться на прежний `userId`. Повторная регистрация создаёт новый `userId`; автоматическое восстановление старой identity не выполняется.
+
 ### 4.3. Project Service
 
 Ответственность:
 
 - Workspace;
-- memberships;
-- projects;
-- tasks;
-- comments;
-- task workflow;
+- Workspace membership;
+- Project;
+- Project membership и ownership;
+- Task;
+- Comment;
+- Task workflow/state machine;
+- `Unassigned` projection для Tasks с `projectId = null`;
+- archive/hard-delete semantics;
+- перемещение Project между Workspace;
+- автоматическая передача Project ownership;
 - права на изменение проектных сущностей.
 
 Хранилище:
@@ -170,10 +177,23 @@ Gateway не должен:
 - workspaces;
 - workspace_members;
 - projects;
+- project_members;
 - tasks;
 - comments;
 - outbox_messages;
 - inbox_messages при необходимости.
+
+Ключевые технические инварианты:
+
+- `projects.workspace_id` nullable;
+- `tasks.project_id` nullable;
+- `Unassigned` не хранится как Project;
+- creator Workspace/Project автоматически получает соответствующее membership;
+- Project ownership transfer выполняется атомарно;
+- архивирование Project атомарно меняет Project и финализирует его Tasks;
+- terminal Tasks (`Closed`, `Rejected`) не изменяются;
+- optimistic concurrency для Task поддерживается через version-поле или эквивалентный механизм.
+
 
 ### 4.4. Chat Service
 
@@ -541,14 +561,123 @@ PostgreSQL используется для транзакционно важны
 
 - migrations;
 - foreign keys;
-- unique constraints;
-- indexes;
+- unique/check constraints;
+- indexes и composite indexes;
 - transactions;
+- isolation;
 - optimistic locking при конкурентных изменениях;
 - pagination;
-- query analysis.
+- connection pooling;
+- query analysis через `EXPLAIN / EXPLAIN ANALYZE`.
 
----
+### 14.1. Core relational model Phase 2
+
+Минимальная схема:
+
+```text
+users
+workspaces
+workspace_members
+projects
+project_members
+tasks
+```
+
+Ключевые связи:
+
+```text
+Workspace 1 ── N WorkspaceMember N ── 1 User
+Workspace 1 ── N Project                (Project.workspaceId nullable)
+Project   1 ── N ProjectMember   N ── 1 User
+Project   1 ── N Task                   (Task.projectId nullable)
+```
+
+`projectId = null` означает Unassigned Task.
+
+### 14.2. Workspace constraints
+
+- `name` уникален;
+- `status` принимает `Active | Archived`;
+- `archived_at` nullable;
+- creator membership создаётся в той же business operation;
+- при отсутствии и Projects, и members Workspace автоматически архивируется;
+- отсутствие Projects само по себе не является причиной архивирования, если members остаются.
+
+### 14.3. Project constraints
+
+- `workspace_id` nullable;
+- `status: Active | Archived`;
+- `archived_at` nullable;
+- creator автоматически получает `ProjectMember(role = Owner)`;
+- внутри одного Workspace имя Project уникально;
+- standalone Project names также уникальны между standalone Projects;
+- одинаковые имена допустимы в разных Workspace.
+
+Для PostgreSQL обычного `UNIQUE(workspace_id, name)` недостаточно для standalone Projects, потому что `NULL` не конфликтует с `NULL`. Для standalone case нужен отдельный partial unique index или эквивалентное решение.
+
+### 14.4. Project membership and ownership
+
+`project_members` хранит минимум:
+
+- `project_id`;
+- `user_id`;
+- `role: Owner | Member | Observer`;
+- `joined_at`.
+
+Правила:
+
+- у активного Project в нормальном пользовательском состоянии один Owner;
+- ручная передача ownership: новый Owner назначается, старый становится Member в одной транзакции;
+- при удалении Owner новый Owner выбирается по `joined_at ASC`: сначала среди Member, затем среди Observer;
+- если других участников нет, Project архивируется;
+- если Project перемещается между Workspace, участникам обеспечивается доступ к destination Workspace, а доступ к source Workspace пересчитывается.
+
+Способ хранения происхождения Workspace membership не является внешним контрактом. Реализация должна лишь корректно поддерживать явно выданный Workspace-доступ и доступ, возникающий через Project.
+
+### 14.5. Task state machine
+
+Task statuses:
+
+```text
+Todo
+In Progress
+Resolved
+Closed
+Rejected
+```
+
+Допустимые ручные переходы:
+
+```text
+Todo        → In Progress | Resolved | Rejected
+In Progress → Resolved | Rejected
+Resolved    → In Progress | Closed
+Closed      → terminal
+Rejected    → terminal
+```
+
+При archive Project:
+
+```text
+Resolved    → Closed
+Todo        → Rejected
+In Progress → Rejected
+```
+
+`Closed` и `Rejected` после перехода не редактируются.
+
+Task хранит immutable `created_at`, automatic `updated_at`, optional `start_date`, optional `due_date` и `version` для optimistic concurrency.
+
+### 14.6. Archive vs hard delete
+
+Archive и hard delete являются разными operations.
+
+Archive сохраняет строку, меняет status, выставляет `archived_at` и может запускать domain side effects.
+
+Hard delete физически удаляет данные, вызывается отдельной operation/endpoint и не должен использоваться обычным frontend flow. В будущем он может быть ограничен administrative permission.
+
+`DELETE` не должен неявно означать то archive, то hard delete в зависимости от контекста.
+
 
 ## 15. MongoDB
 

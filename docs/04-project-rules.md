@@ -372,15 +372,62 @@ Persistence model
 
 Важные business invariants не должны существовать только в Controller.
 
-Если правило относится к Task, оно должно быть защищено на уровне domain/application logic.
+## 11.1. Workspace
 
-Пример:
+- creator автоматически получает Workspace membership и становится Owner;
+- Workspace имеет `Active | Archived` и `archivedAt`;
+- отсутствие Projects допустимо, если остаются members;
+- если не осталось ни Projects, ни members, Workspace автоматически архивируется;
+- archive и hard delete не смешиваются.
 
-> Done task нельзя перевести напрямую в Todo.
+## 11.2. Project
 
-Такое правило не должно зависеть от того, пришёл запрос через REST, GraphQL или тест.
+- `workspaceId` может быть `null`;
+- creator автоматически получает Project membership и становится единственным Owner;
+- роли: `Owner | Member | Observer`;
+- вручную ownership можно передать одному из участников;
+- при удалении Owner новый Owner выбирается по самому раннему `joinedAt`: сначала Member, затем Observer;
+- если других участников нет, Project архивируется;
+- Project можно перемещать между Workspace;
+- участники Project должны иметь доступ к Workspace, в котором Project находится;
+- archive Project финализирует Tasks.
 
----
+## 11.3. Task
+
+Статусы: `Todo | In Progress | Resolved | Closed | Rejected`.
+
+Допустимые ручные переходы:
+
+```text
+Todo        → In Progress | Resolved | Rejected
+In Progress → Resolved | Rejected
+Resolved    → In Progress | Closed
+Closed      → terminal
+Rejected    → terminal
+```
+
+При archive Project:
+
+```text
+Resolved    → Closed
+Todo        → Rejected
+In Progress → Rejected
+```
+
+После `Closed` или `Rejected` Task не редактируется.
+
+`projectId = null` допустим и означает Unassigned Task. `Unassigned` является projection/virtual collection и не моделируется как Project entity.
+
+## 11.4. User deletion
+
+- `userId` сохраняется;
+- User становится `Disabled`;
+- персональные данные/credentials/sessions очищаются;
+- исторические ссылки сохраняются;
+- новая регистрация создаёт новый `userId`.
+
+Эти правила должны защищаться domain/application logic независимо от transport layer.
+
 
 # 12. Database ownership
 
@@ -413,6 +460,18 @@ Persistence model
 
 Не полагаться исключительно на application validation для фундаментальной целостности данных.
 
+Phase 2:
+
+- Workspace `name` unique;
+- Project `name` unique внутри одного Workspace;
+- standalone Project names unique между standalone Projects;
+- учитывать PostgreSQL `NULL` semantics и использовать partial unique index там, где нужно;
+- `projects.workspace_id` nullable;
+- `tasks.project_id` nullable;
+- membership relations оформляются отдельными таблицами;
+- `joinedAt` ProjectMember участвует в fallback ownership;
+- Task имеет version/эквивалент для optimistic concurrency.
+
 ---
 
 # 14. Transactions
@@ -423,6 +482,15 @@ Transaction boundary должен соответствовать бизнес-о
 
 - делать огромную транзакцию вокруг несвязанных действий;
 - держать SQL transaction открытой во время network calls без серьёзной причины.
+
+Phase 2 atomic business operations:
+
+- create Workspace + creator membership;
+- create Project + creator membership;
+- manual ownership transfer;
+- owner deletion fallback;
+- archive Project + Task finalization;
+- Project move + required membership updates.
 
 ---
 
