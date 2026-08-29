@@ -125,6 +125,8 @@ Task.projectId = null
 - [x] Workspace без Projects и без members автоматически архивируется
 - [x] archive и hard delete — разные операции
 - [x] name уникален
+- [x] `colorCategoryId` ссылается на отдельную color/category entity
+- [x] `iconId` ссылается на metadata иконки; binary storage позже может быть S3-compatible
 
 ### Project
 
@@ -153,13 +155,17 @@ Task.projectId = null
 - [x] archive Project: `Todo/In Progress → Rejected`
 - [x] `createdAt` immutable, `updatedAt` automatic
 - [x] planned start/due dates
+- [x] `completedAt` пока не вводится
+- [x] отдельный lifecycle status `Active | Archived`
 - [x] optimistic concurrency закладывается с Phase 2
 
 ### User history rule
 
-- [x] deleted account остаётся в `users` с прежним `id`
+- [x] deleted profile сохраняет прежний `userId`
 - [x] status становится `Disabled`
-- [x] personal data/credentials/sessions очищаются
+- [x] в Profile сохраняются `userId` и ФИО
+- [x] остальные персональные profile fields очищаются
+- [x] credentials/sessions удаляются или отзываются в Auth
 - [x] historical references сохраняются
 - [x] повторная регистрация создаёт новый `userId`
 
@@ -185,7 +191,7 @@ Task.projectId = null
 
 ## Persistence и архитектура
 
-- [ ] таблицы `workspaces`, `workspace_members`, `projects`, `project_members`, `tasks`
+- [ ] таблицы `workspace_color_categories`, `workspace_icons`, `workspaces`, `workspace_members`, `projects`, `project_members`, `tasks`
 - [ ] PostgreSQL
 - [ ] выбрать persistence approach для NestJS
 - [ ] migrations
@@ -220,25 +226,44 @@ Task.projectId = null
 
 ---
 
-# Phase 3. Users, Auth, Sessions & Permissions
+# Phase 3. Profiles, Auth, Sessions & Permissions
 
 ## Цель
 
-Добавить реального пользователя и связать его с Workspace.
+Добавить полноценную пользовательскую identity и разделить понятия authentication и profile уже на уровне доменной модели, даже если до microservice split они ещё находятся в одном runtime.
+
+### Profile
+
+- [ ] User/Profile model
+- [ ] fullName
+- [ ] avatar metadata
+- [ ] Active/Disabled
+- [ ] deleted profile сохраняет `userId` + ФИО
+- [ ] очистка остальных персональных profile fields
+
+### Auth
 
 - [ ] registration/login
+- [ ] credentials
+- [ ] password hashing
 - [ ] access + refresh
 - [ ] refresh rotation
 - [ ] active sessions list
 - [ ] revoke current/selected/all except current/all
+- [ ] удаление/отзыв credentials и sessions при disable account
+
+### Permissions
+
 - [ ] Workspace membership
-- [ ] Owner/Admin/Member
+- [ ] Workspace Owner/Admin/Member
+- [ ] Project Owner/Member/Observer
 - [ ] permission checks
 
 Практический фокус:
 
 - Nest Guards
 - custom decorators
+- authentication vs profile boundary
 - authorization/RBAC
 - session lifecycle
 - security boundaries
@@ -250,20 +275,41 @@ Task.projectId = null
 
 ## Цель
 
-Разделить систему на:
+Разделить систему на первые самостоятельные runtime/bounded contexts:
 
 ```text
 API Gateway
 Auth Service
-Project Service
+Profile Service
+Work Management Service
 ```
+
+Work Management Service сохраняет внутри себя:
+
+```text
+Workspace
+WorkspaceMember
+Project
+ProjectMember
+Task
+Comment
+```
+
+Workspace/Project/Task не разносить на отдельные микросервисы только ради дробления: их business invariants пока требуют локальной транзакционной согласованности.
 
 - [ ] отдельный runtime каждого сервиса
 - [ ] database-per-service
 - [ ] API Gateway
+- [ ] Auth Service
+- [ ] Profile Service
+- [ ] Work Management Service
 - [ ] Gateway → Auth по gRPC
-- [ ] Gateway → Project по gRPC
+- [ ] Gateway → Profile по gRPC
+- [ ] Gateway → Work Management по gRPC
+- [ ] Work Management → Profile lookup только там, где он действительно нужен
 - [ ] no cross-service SQL
+- [ ] no cross-service foreign keys
+- [ ] stable `userId` в контрактах между Profile/Auth/Work Management
 
 Не вводить промежуточный HTTP S2S только ради последующего переписывания.
 
@@ -280,6 +326,7 @@ Project Service
 ### GraphQL
 
 - [ ] Workspace Dashboard
+- [ ] aggregation Work Management + Profile + Notification
 - [ ] resolver authorization
 - [ ] DataLoader
 - [ ] воспроизвести и исправить N+1
@@ -444,7 +491,7 @@ Saga — только если появляется реальный распр�
 
 ## k3s
 
-Развернуть Gateway/Auth/Project/Chat/Notification/Search и инфраструктуру.
+Развернуть Gateway/Auth/Profile/Work Management/Chat/Notification/Activity/Search и инфраструктуру.
 
 Практически изучить:
 

@@ -47,8 +47,9 @@ infra/      # Docker, Kubernetes и Helm-описания
 ```
 
 Текущая реализация Task API находится в `services/task-service`. Пока API Gateway не создан,
-Task API запускается напрямую. При появлении Gateway публичный HTTP transport будет вынесен в него,
-а бизнес-логика задач останется в сервисе.
+Task API запускается напрямую. В процессе Phase 2 эта реализация эволюционирует в домен Work Management.
+При первом microservice split публичный HTTP transport будет вынесен в API Gateway, а Workspace/Project/Task/Comment
+и связанные business invariants останутся внутри Work Management Service.
 
 ### 2.2. Границы сервисов и приложений
 
@@ -56,7 +57,7 @@ Task API запускается напрямую. При появлении Gate
 разделяется на `domain`, `application`, `infrastructure` и transport-слой.
 
 Сервисы и приложения не импортируют внутренний код друг друга. В частности, запрещены зависимости
-вида `task-service -> ../../user-service/src/...` и импорт `TaskService` в API Gateway.
+вида `work-management-service -> ../../profile-service/src/...` и импорт application/domain services в API Gateway.
 
 Взаимодействие между сервисами выполняется только через явные HTTP API, gRPC или integration events.
 Web-клиент использует публичные API и не импортирует domain-модели backend-сервисов.
@@ -74,33 +75,53 @@ Web-клиент использует публичные API и не импор�
 ## 3. Целевая схема
 
 ```text
-                        Client
-                          |
-                REST / GraphQL / Socket.IO
-                          |
-                    API Gateway
-                          |
-                         gRPC
-          +---------------+------------------+
-          |               |                  |
-        Auth            Project             Chat
-       Service           Service            Service
-          |               |                  |
-      PostgreSQL      PostgreSQL           MongoDB
+                              Client
+                                |
+                    REST / GraphQL / Socket.IO
+                                |
+                           API Gateway
+                                |
+                               gRPC
+          +---------------------+----------------------+
+          |                     |                      |
+        Auth                 Profile            Work Management
+       Service               Service                Service
+          |                     |                      |
+      PostgreSQL            PostgreSQL             PostgreSQL
+                                                    |
+                                           Workspace / Project
+                                             Task / Comment
 
-                      RabbitMQ
-          +---------------+------------------+
-          |               |                  |
-     Notification       Search            Activity
-       Service          Service           Service
-          |               |                  |
-      PostgreSQL      Manticore           MongoDB
+                               |
+                              Chat
+                             Service
+                               |
+                             MongoDB
 
-                       Redis
-               +---------+----------+
-               |                    |
-              Cache          Socket.IO Pub/Sub
+
+                         RabbitMQ / Events
+          +---------------------+----------------------+
+          |                     |                      |
+   Notification             Activity                Search
+      Service               Service                Service
+          |                     |                      |
+      PostgreSQL            MongoDB               Manticore
+
+
+                              Redis
+                    +-----------+------------+
+                    |                        |
+                  Cache              Socket.IO Pub/Sub
 ```
+
+Ключевой принцип разделения:
+
+- `Auth Service` отвечает за authentication, credentials и sessions;
+- `Profile Service` владеет пользовательским профилем и lifecycle пользовательской identity;
+- `Work Management Service` владеет Workspace, Project, Task и Comment как одним транзакционно связанным доменом;
+- `Chat Service` владеет realtime communication domain;
+- `Notification`, `Activity` и `Search` строят собственные модели преимущественно из integration events;
+- API Gateway скрывает внутреннее разбиение от frontend.
 
 ---
 
@@ -110,10 +131,11 @@ Web-клиент использует публичные API и не импор�
 
 Ответственность:
 
+- единая публичная точка входа;
 - публичный REST API;
 - публичный GraphQL API;
 - Socket.IO connections;
-- аутентификация входящих запросов;
+- authentication/authorization boundary для входящих клиентских запросов;
 - маршрутизация;
 - aggregation read-моделей;
 - преобразование transport DTO;
@@ -123,21 +145,27 @@ Gateway не должен:
 
 - владеть бизнес-данными;
 - содержать доменную логику сервисов;
-- обращаться напрямую к их БД.
+- обращаться напрямую к их БД;
+- превращаться в общий business service.
 
 ### 4.2. Auth Service
 
+Auth Service отвечает только за authentication и lifecycle авторизованных сессий.
+
 Ответственность:
 
-- пользователи;
-- credentials;
-- password hashing;
+- registration flow в части credentials;
 - login;
-- JWT;
+- password hashing;
+- access tokens;
 - refresh tokens;
+- refresh token rotation;
 - user sessions;
 - revocation;
-- управление активными устройствами.
+- управление активными устройствами;
+- проверка authentication identity.
+
+Auth Service не владеет пользовательским профилем, Workspace/Project membership или display-данными.
 
 Хранилище:
 
@@ -145,13 +173,51 @@ Gateway не должен:
 
 Минимальные таблицы:
 
-- users;
+- auth_identities или эквивалентная identity mapping;
 - user_credentials;
 - user_sessions.
 
-При удалении аккаунта `users.id` сохраняется для исторических связей. Пользователь переводится в `Disabled`, credentials/sessions и персональные данные очищаются. Исторические сущности продолжают ссылаться на прежний `userId`. Повторная регистрация создаёт новый `userId`; автоматическое восстановление старой identity не выполняется.
+`userId` является стабильным идентификатором пользователя и связывает authentication identity с Profile Service.
 
-### 4.3. Project Service
+### 4.3. Profile Service
+
+Profile Service владеет пользовательской identity с точки зрения продукта.
+
+Ответственность:
+
+- User/Profile;
+- ФИО;
+- display name при необходимости;
+- avatar metadata;
+- profile status;
+- пользовательские profile settings;
+- timezone/locale/preferences по мере появления;
+- deleted/disabled profile representation.
+
+Хранилище:
+
+- PostgreSQL.
+
+Минимальная таблица:
+
+- users или profiles.
+
+При удалении аккаунта:
+
+- `userId` сохраняется;
+- profile status становится `Disabled`;
+- сохраняются `userId` и ФИО;
+- остальные персональные profile fields очищаются;
+- avatar заменяется на Deleted User placeholder;
+- повторная регистрация создаёт новый `userId`.
+
+Credentials и sessions удаляются/отзываются в Auth Service.
+
+Profile Service не владеет WorkspaceMember/ProjectMember: эти связи принадлежат Work Management domain.
+
+### 4.4. Work Management Service
+
+Work Management Service владеет доменом организации командной работы.
 
 Ответственность:
 
@@ -162,11 +228,13 @@ Gateway не должен:
 - Task;
 - Comment;
 - Task workflow/state machine;
+- Task lifecycle `Active | Archived`;
 - `Unassigned` projection для Tasks с `projectId = null`;
 - archive/hard-delete semantics;
 - перемещение Project между Workspace;
 - автоматическая передача Project ownership;
-- права на изменение проектных сущностей.
+- права на изменение Workspace/Project/Task/Comment;
+- транзакционные invariants между Workspace, Project и Task.
 
 Хранилище:
 
@@ -174,6 +242,8 @@ Gateway не должен:
 
 Основные таблицы:
 
+- workspace_color_categories;
+- workspace_icons;
 - workspaces;
 - workspace_members;
 - projects;
@@ -190,34 +260,37 @@ Gateway не должен:
 - `Unassigned` не хранится как Project;
 - creator Workspace/Project автоматически получает соответствующее membership;
 - Project ownership transfer выполняется атомарно;
-- архивирование Project атомарно меняет Project и финализирует его Tasks;
-- terminal Tasks (`Closed`, `Rejected`) не изменяются;
+- архивирование Project атомарно меняет Project и финализирует/архивирует его Tasks;
+- terminal workflow states (`Closed`, `Rejected`) не изменяются;
+- Task lifecycle status хранится отдельно от workflow status;
 - optimistic concurrency для Task поддерживается через version-поле или эквивалентный механизм.
 
+Workspace, Project и Task намеренно не разделяются на отдельные микросервисы на текущей целевой границе. Между ними существуют сильные транзакционные invariants, и разбиение породило бы distributed consistency без достаточной выгоды.
 
-### 4.4. Chat Service
+### 4.5. Chat Service
 
 Ответственность:
 
 - chat rooms;
+- chat memberships при необходимости;
 - messages;
 - message history;
 - mentions;
-- chat-specific operations.
+- attachments metadata;
+- chat-specific operations;
+- realtime communication scenarios.
 
 Хранилище:
 
 - MongoDB.
 
-MongoDB выбирается из-за естественной документной модели сообщений и удобной работы с историей, вложенными данными и меняющейся структурой message metadata.
-
-### 4.5. Notification Service
+### 4.6. Notification Service
 
 Ответственность:
 
 - создание уведомлений;
 - хранение их состояния;
-- получение событий через RabbitMQ;
+- получение integration events через RabbitMQ;
 - mark as read;
 - подготовка пользовательских realtime notifications.
 
@@ -225,19 +298,24 @@ MongoDB выбирается из-за естественной документ
 
 - PostgreSQL.
 
-### 4.6. Activity Service
+Notification Service не участвует в основной транзакции Work Management/Chat операции.
+
+### 4.7. Activity Service
 
 Ответственность:
 
 - immutable activity stream;
-- события действий пользователей;
-- история значимых изменений.
+- пользовательская история значимых действий;
+- события Workspace/Project/Task/Comment;
+- события Chat/Profile/Auth, если они имеют продуктовый смысл.
 
 Хранилище:
 
 - MongoDB.
 
-### 4.7. Search Service
+Activity Service не является Event Store и не используется для восстановления domain state.
+
+### 4.8. Search Service
 
 Ответственность:
 
@@ -251,9 +329,57 @@ Search engine:
 
 - Manticore Search.
 
-Возможное дополнительное упражнение после основной реализации:
+Источники данных:
 
-- сравнение с Elasticsearch.
+- Work Management Service;
+- Chat Service;
+- Profile Service при необходимости поиска пользователей.
+
+Search index является производной моделью и не является source of truth.
+
+### 4.9. Основные связи между сервисами
+
+Синхронные связи через gRPC используются только когда вызывающей стороне действительно нужен немедленный ответ.
+
+```text
+API Gateway -> Auth
+API Gateway -> Profile
+API Gateway -> Work Management
+API Gateway -> Chat
+API Gateway -> Notification
+```
+
+Внутренний sync lookup допускается, например:
+
+```text
+Work Management -> Profile
+Chat -> Profile
+```
+
+только если операция действительно требует актуальных profile данных и local projection не подходит.
+
+Асинхронные связи:
+
+```text
+Auth / Profile / Work Management / Chat
+                  |
+              RabbitMQ
+           /       |       \
+Notification   Activity   Search
+```
+
+Примеры integration events:
+
+```text
+TaskAssigned
+TaskStatusChanged
+ProjectArchived
+ProjectOwnershipTransferred
+CommentCreated
+ChatMessageCreated
+UserProfileDisabled
+UserSessionRevoked
+```
 
 ---
 
@@ -323,7 +449,8 @@ gRPC используется для синхронных запросов ме�
 Примеры:
 
 - Gateway -> Auth;
-- Gateway -> Project;
+- Gateway -> Profile;
+- Gateway -> Work Management;
 - Gateway -> Chat;
 - Gateway -> Notification;
 - внутренние lookup-запросы, если они действительно требуют синхронного ответа.
@@ -355,7 +482,7 @@ UserSessionRevoked
 Пример:
 
 ```text
-Project Service
+Work Management Service
       |
   TaskAssigned
       |
@@ -572,10 +699,12 @@ PostgreSQL используется для транзакционно важны
 
 ### 14.1. Core relational model Phase 2
 
-Минимальная схема:
+В текущем monolith/Phase 2 минимальная схема может содержать:
 
 ```text
 users
+workspace_color_categories
+workspace_icons
 workspaces
 workspace_members
 projects
@@ -583,13 +712,23 @@ project_members
 tasks
 ```
 
+После первого microservice split:
+
+- `users/profiles` принадлежат Profile Service;
+- Work Management Service хранит только `userId` в membership/author/assignee references и не выполняет cross-service foreign key.
+
 Ключевые связи:
 
 ```text
-Workspace 1 ── N WorkspaceMember N ── 1 User
+Workspace 1 ── N WorkspaceMember(userId)
 Workspace 1 ── N Project                (Project.workspaceId nullable)
-Project   1 ── N ProjectMember   N ── 1 User
+Project   1 ── N ProjectMember(userId)
 Project   1 ── N Task                   (Task.projectId nullable)
+
+Profile Service
+User/Profile(id)
+     ↑
+     └── логические ссылки по userId из Work Management, без cross-service FK после split
 ```
 
 `projectId = null` означает Unassigned Task.
@@ -597,6 +736,9 @@ Project   1 ── N Task                   (Task.projectId nullable)
 ### 14.2. Workspace constraints
 
 - `name` уникален;
+- `color_category_id` nullable и ссылается на отдельную color/category entity;
+- `icon_id` nullable и ссылается на metadata записи иконки;
+- binary content иконки в будущем может храниться в S3-compatible object storage, БД хранит только metadata/storage key;
 - `status` принимает `Active | Archived`;
 - `archived_at` nullable;
 - creator membership создаётся в той же business operation;
@@ -666,7 +808,16 @@ In Progress → Rejected
 
 `Closed` и `Rejected` после перехода не редактируются.
 
-Task хранит immutable `created_at`, automatic `updated_at`, optional `start_date`, optional `due_date` и `version` для optimistic concurrency.
+Отдельно от workflow status Task имеет lifecycle status:
+
+```text
+Active
+Archived
+```
+
+При archive Project его Tasks переводятся в lifecycle `Archived` в той же business operation. Workflow при этом меняется по правилам выше.
+
+Task хранит immutable `created_at`, automatic `updated_at`, optional `start_date`, optional `due_date` и `version` для optimistic concurrency. `completedAt` на текущем этапе не вводится.
 
 ### 14.6. Archive vs hard delete
 
@@ -705,10 +856,12 @@ MongoDB используется там, где документная моде�
 
 Индексируются:
 
+- workspaces при необходимости;
 - projects;
 - tasks;
 - comments;
-- chat messages.
+- chat messages;
+- profiles/users при появлении пользовательского поиска.
 
 Основной поток:
 

@@ -17,3 +17,16 @@
 - frontend не дублирует backend business rules;
 - shadcn-vue Select/Combobox вместо случайных native OS selects;
 - skeleton не показывается при каждом background refetch; сохраняются existing data + локальные spinners.
+
+## Microservice boundary update
+
+- Auth Service оставлен только для authentication, credentials, tokens и sessions;
+- Profile Service выделен как владелец User/Profile;
+- Project Service переименован в Work Management Service;
+- Workspace/Project/Task/Comment остаются в одном Work Management bounded context;
+- Workspace/Project/Task не дробятся на отдельные сервисы без реальной причины;
+- API Gateway работает с Auth/Profile/Work Management/Chat/Notification через публичные внутренние contracts;
+- Notification/Activity/Search получают доменные изменения преимущественно через RabbitMQ;
+- после split запрещены cross-service SQL и cross-service foreign keys;
+- Task lifecycle `Active | Archived` отделён от workflow status;
+- deleted Profile сохраняет только `userId` и ФИО; credentials/sessions относятся к Auth.

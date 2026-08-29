@@ -329,6 +329,36 @@ TODO должен быть конкретным.
 `packages` содержит только самостоятельные versioned packages. Нельзя выносить в него shared domain-модели,
 бизнес-логику или внутренние DTO сервисов.
 
+## 8.2. Целевые service boundaries
+
+Целевые backend-сервисы:
+
+```text
+API Gateway
+Auth Service
+Profile Service
+Work Management Service
+Chat Service
+Notification Service
+Activity Service
+Search Service
+```
+
+Правила ответственности:
+
+- Auth владеет credentials, tokens и sessions;
+- Profile владеет User/Profile и его display/personal data;
+- Work Management владеет Workspace, Project, Task, Comment и memberships;
+- Chat владеет communication domain;
+- Notification создаёт пользовательские уведомления из событий;
+- Activity хранит пользовательскую activity history, но не является Event Store;
+- Search владеет только search projection/index;
+- Gateway не владеет доменными данными.
+
+Не называть сервис по одной вложенной сущности, если его bounded context существенно шире. Поэтому домен Workspace/Project/Task называется `Work Management Service`, а не `Project Service`.
+
+Не разделять Workspace, Project и Task на отдельные микросервисы без конкретной причины. Пока между ними существуют атомарные business operations, локальная транзакция предпочтительнее искусственной distributed consistency.
+
 ---
 
 # 9. NestJS
@@ -375,6 +405,8 @@ Persistence model
 ## 11.1. Workspace
 
 - creator автоматически получает Workspace membership и становится Owner;
+- `colorCategoryId` ссылается на отдельную color/category entity;
+- `iconId` ссылается на metadata иконки; binary content не хранится прямо в Workspace row;
 - Workspace имеет `Active | Archived` и `archivedAt`;
 - отсутствие Projects допустимо, если остаются members;
 - если не осталось ни Projects, ни members, Workspace автоматически архивируется;
@@ -414,17 +446,31 @@ Todo        → Rejected
 In Progress → Rejected
 ```
 
-После `Closed` или `Rejected` Task не редактируется.
+После `Closed` или `Rejected` workflow Task не редактируется.
+
+Отдельно Task имеет lifecycle status:
+
+```text
+Active | Archived
+```
+
+Архивирование не смешивается с workflow status. При archive Project Task переводится в lifecycle `Archived`, а workflow меняется по правилам Project archive.
 
 `projectId = null` допустим и означает Unassigned Task. `Unassigned` является projection/virtual collection и не моделируется как Project entity.
 
-## 11.4. User deletion
+`completedAt` на текущем этапе не вводится.
+
+## 11.4. User/Profile deletion
 
 - `userId` сохраняется;
-- User становится `Disabled`;
-- персональные данные/credentials/sessions очищаются;
+- Profile становится `Disabled`;
+- сохраняются `userId` и ФИО;
+- остальные персональные profile fields очищаются;
+- credentials/sessions удаляются или отзываются в Auth;
 - исторические ссылки сохраняются;
 - новая регистрация создаёт новый `userId`.
+
+Profile и Auth — разные ответственности даже если на раннем этапе технически работают в одном runtime.
 
 Эти правила должны защищаться domain/application logic независимо от transport layer.
 
@@ -444,6 +490,8 @@ In Progress → Rejected
 - API/gRPC;
 - events;
 - local projection, если оправдано.
+
+После microservice split Work Management не имеет FK на таблицу Profile Service. `userId` является межсервисным идентификатором, а referential consistency между сервисами обеспечивается контрактами и бизнес-процессами, не cross-service SQL.
 
 ---
 

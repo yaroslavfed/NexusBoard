@@ -53,16 +53,16 @@ Browser / iOS Web App
         ▼
 NexusBoard Web
 Vue SPA / PWA
-        │
         │ REST / GraphQL / WebSocket
         ▼
 API Gateway
         │
-        ├── Task Service
-        ├── User Service
+        ├── Auth Service
+        ├── Profile Service
+        ├── Work Management Service
+        ├── Chat Service
         ├── Notification Service
-        ├── Analytics Service
-        └── другие сервисы
+        └── другие внутренние сервисы
 ```
 
 ### Главное правило
@@ -72,9 +72,9 @@ Frontend не должен напрямую обращаться к внутре
 Запрещено:
 
 ```text
-Web → Task Service
-Web → User Service
-Web → Notification Service
+Web → Profile Service
+Web → Work Management Service
+Web → Chat Service
 ```
 
 Допустимо только:
@@ -85,7 +85,7 @@ Web → API Gateway → Services
 
 Даже если на раннем этапе backend ещё является единым NestJS-приложением, frontend должен рассматривать его как внешний API Gateway.
 
-Это позволит позже разделять backend на микросервисы без существенной переработки frontend.
+Frontend не должен зависеть от того, что Workspace/Project/Task сейчас находятся внутри одного `Work Management Service`. Если backend позже изменит внутренние boundaries, публичный frontend contract должен по возможности остаться стабильным.
 
 ---
 
@@ -758,7 +758,7 @@ Board является одним из основных интерфейсов N
 Desktop layout может выглядеть как:
 
 ```text
-Todo | In Progress | Done
+Todo | In Progress | Resolved | Closed | Rejected
 ```
 
 Карточка задачи должна минимум показывать:
@@ -835,7 +835,7 @@ moves task
 
 ↓
 
-Task Service
+Work Management Service
 
 ↓
 
@@ -942,7 +942,7 @@ WebSocket использовать для:
 Frontend не должен знать:
 
 - какой сервис хранит задачу
-- какой сервис отвечает за пользователя
+- какой сервис хранит profile или work-domain сущность
 - какой broker используется
 - где находится Redis
 - какой сервис публикует событие
@@ -959,7 +959,7 @@ RabbitMQ является внутренней частью backend.
 Frontend никогда напрямую с RabbitMQ не работает.
 
 ```text
-Task Service
+Work Management Service
    ↓
 RabbitMQ
    ↓
@@ -1009,14 +1009,14 @@ Browser взаимодействует с Gateway через REST, GraphQL и We
 
 ## 41. Authentication
 
-Когда появляется auth:
+Когда появляется auth/profile split:
 
 ```text
 Frontend
    ↓
 Gateway
-   ↓
-Auth
+   ├── Auth Service      # login/tokens/sessions
+   └── Profile Service   # profile/display data
 ```
 
 Скрытие кнопки на frontend является только UX, а не security boundary.
@@ -1268,7 +1268,7 @@ Frontend не должен изобретать собственные пере�
 
 ### Этап 5. Users and Team
 
-После появления User Service:
+После появления Profile Service:
 
 - `/team`
 - users
