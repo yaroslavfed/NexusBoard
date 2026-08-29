@@ -6,8 +6,8 @@ const isMenuOpen = ref(false);
 </script>
 
 <template>
-  <div class="min-h-dvh bg-slate-50 text-slate-950">
-    <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+  <div class="app-background min-h-dvh text-slate-950">
+    <header class="glass-header sticky top-0 z-20">
       <div class="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
         <RouterLink to="/tasks" class="flex items-center gap-2 font-semibold tracking-tight">
           <span class="grid size-9 place-items-center rounded-xl bg-teal-700 text-white"><CheckSquare :size="20" /></span>
@@ -23,7 +23,7 @@ const isMenuOpen = ref(false);
     </header>
 
     <div class="mx-auto flex max-w-7xl">
-      <aside class="hidden w-56 shrink-0 border-r border-slate-200 px-3 py-6 md:block">
+      <aside class="glass-sidebar hidden w-56 shrink-0 px-3 py-6 md:block">
         <nav class="space-y-1">
           <RouterLink to="/tasks" class="nav-link"><ClipboardList :size="18" /> Задачи</RouterLink>
           <span class="nav-link cursor-not-allowed opacity-45"><LayoutDashboard :size="18" /> Обзор</span>
@@ -34,10 +34,10 @@ const isMenuOpen = ref(false);
       <main class="min-w-0 flex-1 px-4 py-6 pb-24 sm:px-6 sm:py-8 md:pb-8"><RouterView /></main>
     </div>
 
-    <nav v-if="isMenuOpen" class="fixed inset-x-3 top-20 z-30 rounded-xl border border-slate-200 bg-white p-2 shadow-xl sm:hidden">
+    <nav v-if="isMenuOpen" class="glass-panel fixed inset-x-3 top-20 z-30 p-2 sm:hidden">
       <RouterLink class="nav-link" to="/tasks" @click="isMenuOpen = false"><ClipboardList :size="18" /> Задачи</RouterLink>
     </nav>
-    <nav class="fixed inset-x-0 bottom-0 z-20 flex border-t border-slate-200 bg-white px-3 pb-[env(safe-area-inset-bottom)] pt-2 md:hidden">
+    <nav class="glass-bottom-nav fixed inset-x-0 bottom-0 z-20 flex px-3 pb-[env(safe-area-inset-bottom)] pt-2 md:hidden">
       <RouterLink to="/tasks" class="mobile-nav-link"><ClipboardList :size="19" /> Задачи</RouterLink>
       <span class="mobile-nav-link cursor-not-allowed opacity-45"><LayoutDashboard :size="19" /> Обзор</span>
       <span class="mobile-nav-link cursor-not-allowed opacity-45"><Settings :size="19" /> Ещё</span>

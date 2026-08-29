@@ -2,40 +2,57 @@
 
 @theme { --color-teal-700: #0f766e; }
 
+:root { --nb-radius-panel: 1.25rem; --nb-radius-control: 0.875rem; --nb-glass-border: rgb(255 255 255 / 55%); --nb-glass-surface: rgb(255 255 255 / 68%); --nb-glass-shadow: 0 18px 45px rgb(15 23 42 / 10%); }
+
 @layer base {
   * { box-sizing: border-box; }
-  html { background: #f8fafc; }
+  html { background: #edf5f5; }
   body { margin: 0; min-width: 320px; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
-  button, input, textarea, select { font: inherit; }
-  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid rgb(45 212 191 / 55%); outline-offset: 2px; }
+  button, input, textarea { font: inherit; }
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid rgb(45 212 191 / 55%); outline-offset: 2px; }
 }
 
 @layer components {
   .touch-target { min-height: 44px; min-width: 44px; }
-  .nav-link { @apply flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950; }
-  .router-link-active.nav-link { @apply bg-teal-50 text-teal-800; }
-  .mobile-nav-link { @apply flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-xs font-medium text-slate-500; }
+  .app-background { background: radial-gradient(circle at 9% 3%, rgb(204 251 241 / 72%), transparent 26rem), radial-gradient(circle at 92% 14%, rgb(224 231 255 / 70%), transparent 30rem), #f1f5f9; }
+  .glass-header { @apply border-b border-white/55 bg-white/58 backdrop-blur-xl; }
+  .glass-sidebar { @apply border-r border-white/55 bg-white/30 backdrop-blur-lg; }
+  .glass-bottom-nav { @apply border-t border-white/65 bg-white/72 backdrop-blur-xl; }
+  .glass-panel { border: 1px solid var(--nb-glass-border); border-radius: var(--nb-radius-panel); background: var(--nb-glass-surface); box-shadow: var(--nb-glass-shadow); }
+  .nav-link { @apply flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-slate-600 transition hover:bg-white/65 hover:text-slate-950; }
+  .router-link-active.nav-link { @apply bg-teal-50/80 text-teal-800 shadow-sm; }
+  .mobile-nav-link { @apply flex min-h-12 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-xs font-medium text-slate-500 transition; }
   .router-link-active.mobile-nav-link { @apply text-teal-700; }
-  .button-primary, .button-secondary, .button-danger { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60; }
+  .button-primary, .button-secondary, .button-danger { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--nb-radius-control)] px-4 text-sm font-semibold transition duration-200 disabled:cursor-not-allowed disabled:opacity-60; }
   .button-primary { @apply bg-teal-700 text-white hover:bg-teal-800; }
-  .button-secondary { @apply border border-slate-300 bg-white text-slate-700 hover:bg-slate-50; }
+  .button-secondary { @apply border border-white/75 bg-white/70 text-slate-700 shadow-sm backdrop-blur hover:bg-white; }
   .button-danger { @apply bg-rose-700 text-white hover:bg-rose-800; }
-  .button-danger-icon { @apply grid size-11 place-items-center rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100; }
   .field-label { @apply flex flex-col gap-1.5 text-sm font-medium text-slate-700; }
-  .field-input { @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-sm placeholder:text-slate-400; }
+  .field-input { @apply w-full rounded-[var(--nb-radius-control)] border border-white/80 bg-white/88 px-3 py-2.5 text-slate-900 shadow-sm placeholder:text-slate-400; }
   .field-error { @apply text-xs font-normal text-rose-700; }
+  .select-trigger { @apply flex min-h-11 w-full items-center justify-between gap-3 rounded-[var(--nb-radius-control)] border border-white/80 bg-white/88 px-3 text-left text-sm font-normal text-slate-900 shadow-sm outline-none transition data-[placeholder]:text-slate-400; }
+  .select-trigger:focus-visible { outline: 3px solid rgb(45 212 191 / 55%); outline-offset: 2px; }
+  .select-content { @apply z-50 min-w-[var(--reka-select-trigger-width)] overflow-hidden rounded-[var(--nb-radius-control)] border border-white/70 bg-white/92 p-1 shadow-xl backdrop-blur-xl; }
+  .select-item { @apply relative flex min-h-10 cursor-default select-none items-center gap-2 rounded-lg px-3 text-sm text-slate-700 outline-none data-[highlighted]:bg-teal-50 data-[highlighted]:text-teal-900; }
   .eyebrow { @apply text-xs font-bold uppercase tracking-wider text-teal-700; }
-  .task-row { @apply flex min-h-28 flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-teal-300 hover:shadow md:flex-row md:items-center; }
+  .task-row { @apply flex min-h-28 flex-col gap-3 rounded-[var(--nb-radius-panel)] border border-white/75 bg-white/78 p-4 shadow-sm backdrop-blur-sm transition duration-200 hover:border-teal-200 hover:bg-white/90 hover:shadow-md md:flex-row md:items-center; }
   .badge { @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold; }
   .status-todo { @apply bg-slate-100 text-slate-700; }
   .status-progress { @apply bg-amber-100 text-amber-800; }
-  .status-done { @apply bg-emerald-100 text-emerald-800; }
+  .status-resolved { @apply bg-emerald-100 text-emerald-800; }
+  .status-closed { @apply bg-slate-200 text-slate-700; }
+  .status-rejected { @apply bg-rose-100 text-rose-800; }
+  .status-archived { @apply bg-slate-200/80 text-slate-700; }
   .priority-Low { @apply bg-sky-100 text-sky-800; }
   .priority-Medium { @apply bg-violet-100 text-violet-800; }
   .priority-High { @apply bg-rose-100 text-rose-800; }
-  .empty-state { @apply flex min-h-80 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-slate-300 bg-white px-6 text-center text-slate-500; }
+  .empty-state { @apply flex min-h-80 flex-col items-center justify-center gap-3 border-dashed px-6 text-center text-slate-500; border: 1px dashed var(--nb-glass-border); border-radius: var(--nb-radius-panel); background: var(--nb-glass-surface); box-shadow: var(--nb-glass-shadow); }
   .empty-state h1, .empty-state h2 { @apply m-0 text-lg font-semibold text-slate-900; }
   .empty-state p { @apply m-0 max-w-sm text-sm leading-6; }
-  .dialog-backdrop { @apply fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 p-3 sm:items-center sm:p-6; }
-  .dialog-panel { @apply max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto rounded-t-2xl bg-white p-5 shadow-2xl sm:max-h-[calc(100dvh-3rem)] sm:rounded-2xl sm:p-7; }
+  .dialog-backdrop { @apply fixed inset-0 z-50 bg-slate-950/38 backdrop-blur-[2px]; }
+  .dialog-panel { @apply fixed inset-x-3 bottom-0 z-50 max-h-[calc(100dvh-1.5rem)] w-auto overflow-y-auto rounded-t-[var(--nb-radius-panel)] border border-white/65 bg-white/88 p-5 shadow-2xl backdrop-blur-xl sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:max-h-[calc(100dvh-3rem)] sm:w-full sm:max-w-xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[var(--nb-radius-panel)] sm:p-7; }
+  .toast-viewport { @apply fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-[60] flex w-[calc(100vw-2rem)] max-w-sm outline-none; }
+  .toast-root { @apply w-full rounded-[var(--nb-radius-control)] border border-white/75 bg-white/90 p-4 shadow-xl backdrop-blur-xl; }
 }
+
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }

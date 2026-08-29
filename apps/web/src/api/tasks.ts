@@ -1,8 +1,8 @@
-export const TASK_STATUSES = ['Todo', 'In Progress', 'Done'] as const;
+export const TASK_WORKFLOW_STATUSES = ['Todo', 'In Progress', 'Resolved', 'Closed', 'Rejected'] as const;
 export const TASK_PRIORITIES = ['Low', 'Medium', 'High'] as const;
 export const TASK_SORT_FIELDS = ['createdAt', 'priority'] as const;
 
-export type TaskStatus = (typeof TASK_STATUSES)[number];
+export type TaskWorkflowStatus = (typeof TASK_WORKFLOW_STATUSES)[number];
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 export type TaskSortField = (typeof TASK_SORT_FIELDS)[number];
 export type SortOrder = 'asc' | 'desc';
@@ -11,14 +11,22 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
-  status: TaskStatus;
+  workflowStatus: TaskWorkflowStatus;
+  lifecycleStatus: 'Active' | 'Archived';
   priority: TaskPriority;
+  authorId: string;
+  assigneeId?: string;
+  projectId?: string;
+  plannedStartDate?: string;
+  dueDate?: string;
   createdAt: string;
   updatedAt: string;
+  archivedAt?: string;
+  version: number;
 }
 
 export interface TaskQuery {
-  status?: TaskStatus;
+  workflowStatus?: TaskWorkflowStatus;
   priority?: TaskPriority;
   sortBy?: TaskSortField;
   order?: SortOrder;
@@ -28,16 +36,25 @@ export interface CreateTaskInput {
   title: string;
   description?: string;
   priority: TaskPriority;
+  plannedStartDate?: string;
+  dueDate?: string;
 }
 
 export interface UpdateTaskInput {
+  expectedVersion: number;
   title?: string;
   description?: string | null;
   priority?: TaskPriority;
-  status?: TaskStatus;
+  workflowStatus?: TaskWorkflowStatus;
+  plannedStartDate?: string | null;
+  dueDate?: string | null;
 }
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api';
+
+export class ApiError extends Error {
+  constructor(readonly status: number) { super(`Request failed with status ${status}`); }
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, {
@@ -46,7 +63,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
+    throw new ApiError(response.status);
   }
 
   return response.status === 204 ? (undefined as T) : (await response.json()) as T;
@@ -70,7 +87,9 @@ export const tasksApi = {
   update(id: string, input: UpdateTaskInput): Promise<Task> {
     return request<Task>(`/tasks/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(input) });
   },
-  delete(id: string): Promise<void> {
-    return request<void>(`/tasks/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  archive(id: string, expectedVersion: number): Promise<Task> {
+    return request<Task>(`/tasks/${encodeURIComponent(id)}/archive`, {
+      method: 'POST', body: JSON.stringify({ expectedVersion }),
+    });
   },
 };

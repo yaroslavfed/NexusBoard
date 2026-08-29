@@ -31,21 +31,24 @@ export function useCreateTask() {
   });
 }
 
-export function useUpdateTask(id: string) {
+export function useUpdateTask() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: UpdateTaskInput) => tasksApi.update(id, input),
+    mutationFn: ({ id, input }: { id: string; input: UpdateTaskInput }) => tasksApi.update(id, input),
     onSuccess: (task) => {
-      queryClient.setQueryData(taskKeys.detail(id), task);
+      queryClient.setQueryData(taskKeys.detail(task.id), task);
       return queryClient.invalidateQueries({ queryKey: taskKeys.all });
     },
   });
 }
 
-export function useDeleteTask() {
+export function useArchiveTask() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => tasksApi.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: taskKeys.all }),
+    mutationFn: ({ id, expectedVersion }: { id: string; expectedVersion: number }) => tasksApi.archive(id, expectedVersion),
+    onSuccess: (task) => {
+      queryClient.setQueryData(taskKeys.detail(task.id), task);
+      return queryClient.invalidateQueries({ queryKey: taskKeys.all });
+    },
   });
 }
