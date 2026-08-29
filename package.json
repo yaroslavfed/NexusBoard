@@ -7,18 +7,18 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "yarn workspace @nexusboard/task-service run build",
-    "typecheck": "yarn workspace @nexusboard/task-service run typecheck",
-    "format": "yarn workspace @nexusboard/task-service run format",
-    "format:check": "yarn workspace @nexusboard/task-service run format:check",
-    "start": "yarn workspace @nexusboard/task-service run start",
-    "start:dev": "yarn workspace @nexusboard/task-service run start:dev",
-    "start:debug": "yarn workspace @nexusboard/task-service run start:debug",
-    "start:prod": "yarn workspace @nexusboard/task-service run start:prod",
-    "lint": "yarn workspace @nexusboard/task-service run lint",
-    "lint:fix": "yarn workspace @nexusboard/task-service run lint:fix",
-    "test": "yarn workspace @nexusboard/task-service run test",
-    "test:e2e": "yarn workspace @nexusboard/task-service run test:e2e",
-    "check": "yarn workspace @nexusboard/task-service run check"
+    "build": "yarn workspace @nexusboard/work-management-service run build",
+    "typecheck": "yarn workspace @nexusboard/work-management-service run typecheck",
+    "format": "yarn workspace @nexusboard/work-management-service run format",
+    "format:check": "yarn workspace @nexusboard/work-management-service run format:check",
+    "start": "yarn workspace @nexusboard/work-management-service run start",
+    "start:dev": "yarn workspace @nexusboard/work-management-service run start:dev",
+    "start:debug": "yarn workspace @nexusboard/work-management-service run start:debug",
+    "start:prod": "yarn workspace @nexusboard/work-management-service run start:prod",
+    "lint": "yarn workspace @nexusboard/work-management-service run lint",
+    "lint:fix": "yarn workspace @nexusboard/work-management-service run lint:fix",
+    "test": "yarn workspace @nexusboard/work-management-service run test",
+    "test:e2e": "yarn workspace @nexusboard/work-management-service run test:e2e",
+    "check": "yarn workspace @nexusboard/work-management-service run check"
   }
 }

@@ -402,6 +402,174 @@ Frontend должен выглядеть как современное SaaS-пр
 
 Новый экран должен продолжать существующую design system, а не создавать собственный стиль.
 
+
+---
+
+## 12.1. Visual Design System — Glass SaaS
+
+NexusBoard должен использовать единое визуальное направление: **современный SaaS-интерфейс с мягким glassmorphism / frosted glass стилем**.
+
+Цель — не копировать Apple Liquid Glass один-в-один и не строить интерфейс вокруг сложных GPU-эффектов. Интерфейс должен выглядеть лёгким, современным, полупрозрачным и визуально цельным, оставаясь читаемым, производительным и простым в поддержке.
+
+Визуальное направление:
+
+```text
+modern SaaS
++
+frosted glass / glassmorphism
++
+soft rounded surfaces
++
+clean typography
++
+subtle depth
+```
+
+### Основные визуальные принципы
+
+Использовать:
+
+- полупрозрачные surfaces;
+- `backdrop-blur` там, где он действительно улучшает визуальную иерархию;
+- крупные и последовательные скругления;
+- тонкие полупрозрачные borders;
+- мягкие тени без тяжёлого material-style elevation;
+- спокойные фоновые градиенты или цветовые пятна, если они помогают стеклянному эффекту;
+- достаточное количество whitespace;
+- аккуратную современную typography;
+- мягкие hover/focus/pressed transitions;
+- визуальную глубину через несколько уровней surfaces, а не через большое количество контрастных рамок.
+
+Ориентировочные значения могут находиться в диапазонах:
+
+```text
+border radius     16–28px
+surface opacity   5–18%
+backdrop blur     16–30px
+motion            150–250ms
+```
+
+Это не жёсткие токены. Конкретные значения должны задаваться централизованно через design tokens / Tailwind theme и использоваться последовательно.
+
+### Иерархия surfaces
+
+Не делать стеклянным каждый элемент интерфейса.
+
+Предпочтительная иерархия:
+
+```text
+background
+  ↓
+glass application shell / sidebar / navigation
+  ↓
+glass or translucent main panels
+  ↓
+more opaque cards / inputs / tables
+  ↓
+interactive controls
+```
+
+Стекло должно помогать различать уровни интерфейса, а не превращать экран в набор одинаково прозрачных прямоугольников.
+
+### Где glass-style особенно уместен
+
+Предпочитать glass/frosted surfaces для:
+
+- Sidebar;
+- Header;
+- navigation containers;
+- floating toolbars;
+- dialogs;
+- sheets;
+- popovers;
+- command palette;
+- dashboard panels;
+- крупного application shell;
+- отдельных elevated cards.
+
+Обычные form controls, таблицы, task cards и плотные data-heavy области могут быть более непрозрачными ради читаемости.
+
+### Ограничения
+
+Не использовать:
+
+- чрезмерную прозрачность, ухудшающую читаемость;
+- blur ради blur на каждом вложенном элементе;
+- тяжёлые SVG/WebGL displacement/refraction эффекты как основу UI;
+- постоянные анимации поверхности;
+- кислотные gradients без функциональной причины;
+- случайные радиусы и разные стили стекла на соседних компонентах;
+- Material Design elevation как отдельную параллельную визуальную систему;
+- browser-native controls, визуально выбивающиеся из общей design system.
+
+Liquid Glass-подобные refraction/chromatic effects допустимы только как редкий декоративный enhancement для небольших элементов и только если они не ухудшают производительность, accessibility или поддержку браузеров.
+
+### shadcn-vue и Glass SaaS
+
+`shadcn-vue` остаётся основной компонентной базой.
+
+Не создавать отдельную glass component library поверх проекта.
+
+Вместо этого существующие `Button`, `Dialog`, `Sheet`, `Card`, `Popover`, `Select`, `Command`, `DropdownMenu`, `Tabs`, `Input` и другие компоненты должны получать единый NexusBoard visual theme через:
+
+- Tailwind theme;
+- CSS variables;
+- shared design tokens;
+- общие component variants;
+- минимальные reusable surface classes там, где они действительно повторяются.
+
+Предпочтительный принцип:
+
+```text
+shadcn-vue provides behaviour and component primitives
++
+NexusBoard design tokens provide visual identity
+```
+
+### Dark и light themes
+
+Glass surfaces должны корректно работать как минимум с текущей активной цветовой темой приложения.
+
+Если поддерживаются light и dark theme:
+
+- обе темы должны использовать одну и ту же визуальную иерархию;
+- прозрачность и borders должны адаптироваться к background;
+- контраст текста и controls должен оставаться достаточным;
+- нельзя просто инвертировать цвета;
+- blur/transparency не должны делать текст или состояния менее различимыми.
+
+### Mobile
+
+На mobile сохранять ту же визуальную идентичность, но не копировать desktop composition буквально.
+
+Допустимо уменьшать:
+
+- blur;
+- количество одновременно видимых translucent layers;
+- декоративные background effects;
+- размеры радиусов на очень компактных элементах.
+
+Mobile UI должен в первую очередь оставаться читаемым, touch-friendly и производительным.
+
+### Performance и accessibility
+
+Glass-style не должен ухудшать пользовательский сценарий.
+
+Агент обязан учитывать:
+
+- количество одновременно вложенных `backdrop-filter`;
+- производительность на мобильных устройствах;
+- contrast;
+- `prefers-reduced-motion`;
+- focus visibility;
+- читаемость текста поверх полупрозрачного background.
+
+Если красивый glass-эффект конфликтует с читаемостью, accessibility или производительностью, приоритет имеет функциональный и понятный UI.
+
+### Главное правило визуального стиля
+
+> NexusBoard должен выглядеть как единое современное SaaS-приложение с мягкими полупрозрачными glass-surfaces, крупными скруглениями и аккуратной визуальной глубиной — не как Material Design, не как набор browser-native controls и не как демонстрация эффектов Liquid Glass.
+
 ---
 
 ## 13. Loading states
@@ -1336,6 +1504,10 @@ Frontend не должен изобретать собственные пере�
 - active/archived/terminal states визуально различимы;
 - mobile и desktop используют одинаковую семантику действий;
 - frontend не додумывает backend cascade/ownership/membership rules.
+- glass/translucent surfaces используют единые tokens, opacity, borders и radii;
+- нет чрезмерно вложенных `backdrop-filter` и декоративных blur-эффектов без пользы;
+- текст, controls и состояния остаются читаемыми поверх translucent surfaces;
+- новые компоненты продолжают NexusBoard Glass SaaS visual language, а не вводят Material/Bootstrap/случайный собственный стиль;
 
 Если интерфейс функционально работает, но выглядит как набор browser-native controls или заметно моргает при обычных обновлениях, feature не считается завершённой.
 
@@ -1354,6 +1526,7 @@ Frontend часть feature считается завершённой, когд�
 - empty state реализован, если применимо
 - success feedback реализован
 - UI соответствует существующей design system и не использует случайные OS-native controls
+- UI соответствует NexusBoard Glass SaaS visual direction и не создаёт альтернативную визуальную систему
 - нет дублирования backend business logic
 - нет прямого обращения к внутреннему микросервису
 - нет очевидной unnecessary abstraction

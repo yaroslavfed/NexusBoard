@@ -5,7 +5,7 @@ NexusBoard is a learning-oriented production-like backend project built with Typ
 The project evolves step by step from a simple NestJS application into a distributed microservice system.
 
 The repository uses Yarn workspaces. The current implementation lives in
-[`services/task-service`](services/task-service); future applications, services and versioned packages
+[`services/work-management-service`](services/work-management-service); future applications, services and versioned packages
 have dedicated top-level directories.
 
 ## Documentation
@@ -28,3 +28,5 @@ Start the current service:
 ```bash
 yarn start:dev
 ```
+
+For the PostgreSQL foundation, start the local database with `docker compose -f infra/docker-compose.yml up -d`, copy `.env.example` in the Work Management service, and run `yarn workspace @nexusboard/work-management-service migration:run`.
