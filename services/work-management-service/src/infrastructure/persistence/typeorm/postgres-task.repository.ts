@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import type { Task } from '../../../tasks/domain/task';
 import type {
   TaskRepository,
@@ -12,7 +12,10 @@ import type { TaskSearchOptions } from '../../../tasks/application/task-search-o
 import { TaskEntity } from './task.entity';
 @Injectable()
 export class PostgresTaskRepository implements TaskRepository {
-  constructor(@InjectRepository(TaskEntity) private readonly repo: Repository<TaskEntity>) {}
+  constructor(
+    @InjectRepository(TaskEntity) private readonly repo: Repository<TaskEntity>,
+    private readonly dataSource: DataSource,
+  ) {}
   private map(r: TaskEntity): Task {
     return {
       id: r.id,
@@ -58,31 +61,39 @@ export class PostgresTaskRepository implements TaskRepository {
     return (await q.getMany()).map((x) => this.map(x));
   }
   async update(id: string, v: number, u: TaskUpdate): Promise<VersionedMutationResult> {
-    const r = await this.repo
-      .createQueryBuilder()
-      .update(TaskEntity)
-      .set({ ...u, version: () => 'version + 1' })
-      .where('id=:id AND version=:v', { id, v })
-      .returning('*')
-      .execute();
-    if (!r.affected) return this.missing(id);
-    return { kind: 'updated', task: await this.updatedTask(id) };
+    return this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(TaskEntity);
+      const result = await repo
+        .createQueryBuilder()
+        .update(TaskEntity)
+        .set({ ...u, version: () => 'version + 1' })
+        .where('id=:id AND version=:v', { id, v })
+        .execute();
+      if (!result.affected) return this.missingWith(repo, id);
+      const task = await repo.findOneBy({ id });
+      if (!task) throw new Error(`Task ${id} disappeared after update`);
+      return { kind: 'updated', task: this.map(task) };
+    });
   }
   async archive(id: string, v: number, at: Date): Promise<VersionedMutationResult> {
-    const r = await this.repo
-      .createQueryBuilder()
-      .update(TaskEntity)
-      .set({
-        lifecycleStatus: 'Archived',
-        archivedAt: at,
-        updatedAt: at,
-        version: () => 'version + 1',
-      })
-      .where('id=:id AND version=:v', { id, v })
-      .returning('*')
-      .execute();
-    if (!r.affected) return this.missing(id);
-    return { kind: 'updated', task: await this.updatedTask(id) };
+    return this.dataSource.transaction(async (manager) => {
+      const repo = manager.getRepository(TaskEntity);
+      const result = await repo
+        .createQueryBuilder()
+        .update(TaskEntity)
+        .set({
+          lifecycleStatus: 'Archived',
+          archivedAt: at,
+          updatedAt: at,
+          version: () => 'version + 1',
+        })
+        .where('id=:id AND version=:v', { id, v })
+        .execute();
+      if (!result.affected) return this.missingWith(repo, id);
+      const task = await repo.findOneBy({ id });
+      if (!task) throw new Error(`Task ${id} disappeared after update`);
+      return { kind: 'updated', task: this.map(task) };
+    });
   }
   async hardDelete(id: string, v: number): Promise<VersionedDeleteResult> {
     const r = await this.repo
@@ -100,11 +111,10 @@ export class PostgresTaskRepository implements TaskRepository {
       : { kind: 'not-found' };
   }
 
-  private async updatedTask(id: string): Promise<Task> {
-    const task = await this.findById(id);
-
-    if (!task) throw new Error(`Task ${id} disappeared after update`);
-
-    return task;
+  private async missingWith(
+    repo: Repository<TaskEntity>,
+    id: string,
+  ): Promise<Exclude<VersionedMutationResult, { kind: 'updated' }>> {
+    return (await repo.existsBy({ id })) ? { kind: 'version-conflict' } : { kind: 'not-found' };
   }
 }

@@ -51,6 +51,17 @@ export class TaskService {
     const task = await this.findById(id);
     if (task.workflowStatus === 'Closed' || task.workflowStatus === 'Rejected')
       throw new ConflictException('Terminal task cannot be changed');
+    if (
+      input.workflowStatus !== undefined &&
+      !this.canChangeWorkflowStatus(task.workflowStatus, input.workflowStatus)
+    ) {
+      throw new ConflictException('Workflow transition is not allowed');
+    }
+    const plannedStartDate = input.plannedStartDate ?? task.plannedStartDate;
+    const dueDate = input.dueDate ?? task.dueDate;
+    if (plannedStartDate !== undefined && dueDate !== undefined && plannedStartDate > dueDate) {
+      throw new ConflictException('dueDate must not be before plannedStartDate');
+    }
     const update: TaskUpdate = {
       updatedAt: new Date(),
       ...(input.title === undefined ? {} : { title: input.title }),
@@ -83,5 +94,17 @@ export class TaskService {
   ): never {
     if (result.kind === 'not-found') throw new NotFoundException(`Task ${id} not found`);
     throw new ConflictException(`Task ${id} has been changed`);
+  }
+
+  private canChangeWorkflowStatus(
+    current: Task['workflowStatus'],
+    next: Task['workflowStatus'],
+  ): boolean {
+    if (current === next) return true;
+    return (
+      (current === 'Todo' && ['In Progress', 'Resolved', 'Rejected'].includes(next)) ||
+      (current === 'In Progress' && ['Resolved', 'Rejected'].includes(next)) ||
+      (current === 'Resolved' && ['In Progress', 'Closed'].includes(next))
+    );
   }
 }

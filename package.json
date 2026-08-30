@@ -7,18 +7,10 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "yarn workspace @nexusboard/work-management-service run build",
-    "typecheck": "yarn workspace @nexusboard/work-management-service run typecheck",
-    "format": "yarn workspace @nexusboard/work-management-service run format",
-    "format:check": "yarn workspace @nexusboard/work-management-service run format:check",
-    "start": "yarn workspace @nexusboard/work-management-service run start",
-    "start:dev": "yarn workspace @nexusboard/work-management-service run start:dev",
-    "start:debug": "yarn workspace @nexusboard/work-management-service run start:debug",
-    "start:prod": "yarn workspace @nexusboard/work-management-service run start:prod",
-    "lint": "yarn workspace @nexusboard/work-management-service run lint",
-    "lint:fix": "yarn workspace @nexusboard/work-management-service run lint:fix",
-    "test": "yarn workspace @nexusboard/work-management-service run test",
-    "test:e2e": "yarn workspace @nexusboard/work-management-service run test:e2e",
-    "check": "yarn workspace @nexusboard/work-management-service run check"
+    "verify": "yarn verify:work-management-service && yarn verify:web",
+    "verify:work-management-service": "yarn workspace @nexusboard/work-management-service run verify",
+    "verify:web": "yarn workspace @nexusboard/web run verify",
+    "dev:web": "yarn workspace @nexusboard/web run dev",
+    "dev:work-management-service": "yarn workspace @nexusboard/work-management-service run start:dev"
   }
 }

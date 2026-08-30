@@ -76,7 +76,7 @@
 
 ## Stage 1. TypeScript Fundamentals + Task API — DONE
 
-Код текущего Task API размещён в `services/task-service`.
+Код текущего Task API размещён в `services/work-management-service`.
 
 - [x] Task domain model
 - [x] in-memory repository

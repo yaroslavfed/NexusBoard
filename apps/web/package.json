@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "verify": "yarn typecheck && yarn build"
   },
   "dependencies": {
     "@tanstack/vue-query": "^5.66.0",

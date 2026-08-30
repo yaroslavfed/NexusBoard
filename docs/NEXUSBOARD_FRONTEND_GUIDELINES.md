@@ -12,11 +12,13 @@ Frontend NexusBoard — полноценное SPA-приложение для �
 - оставаться достаточно простым, чтобы основное время разработки уходило на backend
 - поддерживать полноценное использование как desktop SPA и как mobile Web App/PWA на iOS
 
-Frontend должен быть качественным, красивым и удобным, но не должен превращаться во второй учебный архитектурный полигон.
+Frontend должен быть качественным, красивым и удобным, но не должен превращаться во второй учебный архитектурный
+полигон.
 
 Главный принцип:
 
-> Frontend должен выглядеть и ощущаться как современное SaaS-приложение, но оставаться прагматичным и простым в поддержке.
+> Frontend должен выглядеть и ощущаться как современное SaaS-приложение, но оставаться прагматичным и простым в
+> поддержке.
 
 ---
 
@@ -83,9 +85,12 @@ Web → Chat Service
 Web → API Gateway → Services
 ```
 
-Даже если на раннем этапе backend ещё является единым NestJS-приложением, frontend должен рассматривать его как внешний API Gateway.
+Даже если на раннем этапе backend ещё является единым NestJS-приложением, frontend должен рассматривать его как внешний
+API Gateway.
 
-Frontend не должен зависеть от того, что Workspace/Project/Task сейчас находятся внутри одного `Work Management Service`. Если backend позже изменит внутренние boundaries, публичный frontend contract должен по возможности остаться стабильным.
+Frontend не должен зависеть от того, что Workspace/Project/Task сейчас находятся внутри одного
+`Work Management Service`. Если backend позже изменит внутренние boundaries, публичный frontend contract должен по
+возможности остаться стабильным.
 
 ---
 
@@ -246,7 +251,8 @@ queryClient.invalidateQueries(...)
 
 Не добавлять Pinia автоматически.
 
-Global store использовать только при появлении реального клиентского состояния, которое нужно разделять между многими частями приложения.
+Global store использовать только при появлении реального клиентского состояния, которое нужно разделять между многими
+частями приложения.
 
 Например:
 
@@ -407,9 +413,12 @@ Frontend должен выглядеть как современное SaaS-пр
 
 ## 12.1. Visual Design System — Glass SaaS
 
-NexusBoard должен использовать единое визуальное направление: **современный SaaS-интерфейс с мягким glassmorphism / frosted glass стилем**.
+NexusBoard должен использовать единое визуальное направление: **современный SaaS-интерфейс с мягким glassmorphism /
+frosted glass стилем**.
 
-Цель — не копировать Apple Liquid Glass один-в-один и не строить интерфейс вокруг сложных GPU-эффектов. Интерфейс должен выглядеть лёгким, современным, полупрозрачным и визуально цельным, оставаясь читаемым, производительным и простым в поддержке.
+Цель — не копировать Apple Liquid Glass один-в-один и не строить интерфейс вокруг сложных GPU-эффектов. Интерфейс должен
+выглядеть лёгким, современным, полупрозрачным и визуально цельным, оставаясь читаемым, производительным и простым в
+поддержке.
 
 Визуальное направление:
 
@@ -449,7 +458,8 @@ backdrop blur     16–30px
 motion            150–250ms
 ```
 
-Это не жёсткие токены. Конкретные значения должны задаваться централизованно через design tokens / Tailwind theme и использоваться последовательно.
+Это не жёсткие токены. Конкретные значения должны задаваться централизованно через design tokens / Tailwind theme и
+использоваться последовательно.
 
 ### Иерархия surfaces
 
@@ -502,7 +512,8 @@ interactive controls
 - Material Design elevation как отдельную параллельную визуальную систему;
 - browser-native controls, визуально выбивающиеся из общей design system.
 
-Liquid Glass-подобные refraction/chromatic effects допустимы только как редкий декоративный enhancement для небольших элементов и только если они не ухудшают производительность, accessibility или поддержку браузеров.
+Liquid Glass-подобные refraction/chromatic effects допустимы только как редкий декоративный enhancement для небольших
+элементов и только если они не ухудшают производительность, accessibility или поддержку браузеров.
 
 ### shadcn-vue и Glass SaaS
 
@@ -510,7 +521,8 @@ Liquid Glass-подобные refraction/chromatic effects допустимы т
 
 Не создавать отдельную glass component library поверх проекта.
 
-Вместо этого существующие `Button`, `Dialog`, `Sheet`, `Card`, `Popover`, `Select`, `Command`, `DropdownMenu`, `Tabs`, `Input` и другие компоненты должны получать единый NexusBoard visual theme через:
+Вместо этого существующие `Button`, `Dialog`, `Sheet`, `Card`, `Popover`, `Select`, `Command`, `DropdownMenu`, `Tabs`,
+`Input` и другие компоненты должны получать единый NexusBoard visual theme через:
 
 - Tailwind theme;
 - CSS variables;
@@ -564,11 +576,256 @@ Glass-style не должен ухудшать пользовательский 
 - focus visibility;
 - читаемость текста поверх полупрозрачного background.
 
-Если красивый glass-эффект конфликтует с читаемостью, accessibility или производительностью, приоритет имеет функциональный и понятный UI.
+Если красивый glass-эффект конфликтует с читаемостью, accessibility или производительностью, приоритет имеет
+функциональный и понятный UI.
 
 ### Главное правило визуального стиля
 
-> NexusBoard должен выглядеть как единое современное SaaS-приложение с мягкими полупрозрачными glass-surfaces, крупными скруглениями и аккуратной визуальной глубиной — не как Material Design, не как набор browser-native controls и не как демонстрация эффектов Liquid Glass.
+> NexusBoard должен выглядеть как единое современное SaaS-приложение с мягкими полупрозрачными glass-surfaces, крупными
+> скруглениями и аккуратной визуальной глубиной — не как Material Design, не как набор browser-native controls и не как
+> демонстрация эффектов Liquid Glass.
+
+
+### Обязательные визуальные признаки glass UI
+
+Glass-style считается реализованным только тогда, когда эффект визуально заметен в обычном использовании приложения без DevTools и без необходимости специально присматриваться.
+
+Недостаточно добавить только:
+
+```text
+light gray background
++
+white cards
++
+rounded corners
++
+box-shadow
+```
+
+Такой результат считается обычным light SaaS UI, а не NexusBoard Glass SaaS.
+
+Для основных экранов должны одновременно выполняться следующие условия:
+
+- background имеет мягкую tonal/color variation, а не является почти однотонным светло-серым полотном;
+- крупные glass surfaces визуально пропускают и размывают часть background;
+- translucency заметна глазами;
+- `backdrop-filter` создаёт реальный визуальный эффект, а не присутствует только формально в CSS;
+- glass surface имеет тонкий светлый/translucent border или inner highlight, подчёркивающий край материала;
+- соседние уровни UI имеют разную степень opacity и depth;
+- glass panel визуально отличается от более непрозрачного input/card/control внутри неё;
+- Sidebar, Header/navigation и хотя бы часть elevated panels ощущаются как отдельные полупрозрачные слои;
+- dialog/sheet сохраняет визуальный контекст background, а не выглядит как полностью непрозрачная белая карточка поверх просто затемнённого экрана.
+
+Если translucency и backdrop blur визуально невозможно заметить без DevTools, поверхность **не считается glass surface**.
+
+### Background policy
+
+Основной background является частью visual design system.
+
+Он должен содержать достаточно tonal/color variation, чтобы glass surfaces могли визуально взаимодействовать с тем, что находится за ними.
+
+Предпочитать спокойные фоновые композиции:
+
+- очень мягкие teal/cyan/blue/violet radial gradients;
+- большие размытые color fields;
+- subtle layered gradients;
+- низкоконтрастные декоративные background accents.
+
+Не использовать:
+
+- яркие rainbow gradients;
+- кислотные цвета;
+- шумный decorative background;
+- фон, который конкурирует с контентом;
+- почти полностью однотонный `#f1f5f9` / `#f8fafc`-подобный background, если поверх него предполагается glass UI.
+
+Пример направления:
+
+```css
+.app-background {
+  background:
+    radial-gradient(circle at 15% 15%, rgb(45 212 191 / 0.18), transparent 32%),
+    radial-gradient(circle at 85% 10%, rgb(129 140 248 / 0.16), transparent 35%),
+    radial-gradient(circle at 60% 80%, rgb(56 189 248 / 0.10), transparent 40%),
+    #eef4f8;
+}
+```
+
+Это пример визуального принципа, а не обязательный набор конкретных цветов.
+
+### Reference glass surface
+
+Для крупной glass surface ориентироваться на визуальную модель такого типа:
+
+```css
+.glass-surface {
+  background:
+    linear-gradient(
+      135deg,
+      rgb(255 255 255 / 0.28),
+      rgb(255 255 255 / 0.12)
+    );
+
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+
+  border: 1px solid rgb(255 255 255 / 0.32);
+
+  box-shadow:
+    0 18px 50px rgb(15 23 42 / 0.10),
+    inset 0 1px 0 rgb(255 255 255 / 0.40);
+
+  border-radius: 24px;
+}
+```
+
+Конкретные значения должны идти через tokens/theme. Нельзя копировать этот CSS во множество компонентов.
+
+### Dialog / Sheet visual policy
+
+Dialog и Sheet должны продолжать glass language приложения.
+
+Предпочтительная модель:
+
+```text
+background context remains visible
++
+soft translucent overlay
++
+glass dialog surface
++
+more opaque inner form controls
+```
+
+Не делать dialog просто непрозрачной белой карточкой.
+
+Overlay не должен превращать весь background в плоскую серую массу.
+
+Допустимый подход:
+
+```css
+.dialog-overlay {
+  background: rgb(15 23 42 / 0.20);
+  backdrop-filter: blur(6px);
+}
+
+.dialog-surface {
+  background:
+    linear-gradient(
+      145deg,
+      rgb(255 255 255 / 0.78),
+      rgb(255 255 255 / 0.56)
+    );
+
+  backdrop-filter: blur(32px) saturate(150%);
+  -webkit-backdrop-filter: blur(32px) saturate(150%);
+
+  border: 1px solid rgb(255 255 255 / 0.55);
+
+  box-shadow:
+    0 30px 80px rgb(15 23 42 / 0.20),
+    inset 0 1px 0 rgb(255 255 255 / 0.65);
+
+  border-radius: 28px;
+}
+```
+
+Inputs, selects, textareas и другие form controls внутри glass dialog обычно должны быть более непрозрачными, чем сама dialog surface. Не использовать одинаковую прозрачность для каждого вложенного уровня.
+
+### Sidebar и Header
+
+Desktop Sidebar должен ощущаться как floating или translucent application surface, а не как плоская светло-серая колонка.
+
+Предпочитать:
+
+- визуальное отделение от основного background;
+- собственный radius;
+- glass/translucent background;
+- visible backdrop blur;
+- subtle border/highlight;
+- умеренный shadow/depth;
+- отступ от внешнего края layout, если это не конфликтует с выбранной композицией.
+
+Header/navigation не должен автоматически становиться большой непрозрачной белой полосой на всю ширину экрана.
+
+Он может быть:
+
+- частью общего translucent application shell;
+- floating glass top bar;
+- минимальным transparent layer поверх общего background.
+
+### Surface hierarchy
+
+Разные типы surfaces не должны выглядеть одинаково.
+
+Предпочтительно:
+
+```text
+App background             → самый глубокий слой
+Glass shell/sidebar        → заметная translucency + blur
+Glass panel                → translucency + blur, чуть выше opacity
+Dialog / elevated surface  → выше opacity, сильнее depth
+Card / table / form area   → более непрозрачный
+Input / Select             → почти непрозрачный control surface
+Primary button             → solid accent
+```
+
+Не использовать одинаковый `background`, `opacity`, `blur`, `border` и `shadow` для всех уровней.
+
+### Radius hierarchy
+
+Радиусы должны быть последовательными, но не одинаковыми на всех элементах.
+
+Ориентировочное направление:
+
+```text
+application shell / dialog   24–28px
+large panel                  20–24px
+card                         16–20px
+input / select / button      12–16px
+pill / badge                 9999px
+```
+
+Конкретные значения должны храниться централизованно.
+
+### Запрещённый результат
+
+Feature считается визуально незавершённой, если итоговый экран по восприятию сводится к:
+
+```text
+flat light background
++
+opaque white cards
++
+rounded corners
++
+soft shadows
++
+accent-colored buttons
+```
+
+Даже если в CSS формально присутствует `backdrop-filter`, такой экран не соответствует NexusBoard Glass SaaS visual direction, если glass effect фактически не читается.
+
+### Visual acceptance checklist
+
+Перед завершением frontend feature агент обязан визуально проверить:
+
+```text
+[ ] Background имеет мягкую tonal/color variation
+[ ] Sidebar/navigation визуально translucent или glass-like
+[ ] Крупные elevated surfaces показывают заметный backdrop blur
+[ ] Translucency видна без DevTools
+[ ] Glass surfaces имеют subtle border/highlight
+[ ] Есть различие между glass surface и opaque inner controls
+[ ] Nested surfaces используют разные уровни opacity/depth
+[ ] Dialog сохраняет часть background context
+[ ] Overlay не превращает страницу в плоскую серую массу
+[ ] UI не выглядит как обычный white-card SaaS
+[ ] Glass effect не ухудшает читаемость
+[ ] На mobile нет чрезмерного количества тяжёлых backdrop-filter
+```
+
+Если один из ключевых пунктов отсутствует из-за осознанного UX/performance решения, агент должен явно указать это в результате задачи, а не молча считать visual quality gate пройденным.
 
 ---
 
@@ -584,7 +841,8 @@ Glass-style не должен ухудшать пользовательский 
 
 - skeleton допустим прежде всего на первом открытии экрана, когда данных ещё никогда не было;
 - если данные уже отображаются, background refetch не должен убирать их с экрана;
-- при коротком refetch сохранять предыдущие данные и при необходимости показывать маленький spinner/progress indicator в локальном месте;
+- при коротком refetch сохранять предыдущие данные и при необходимости показывать маленький spinner/progress indicator в
+  локальном месте;
 - skeleton не должен мигать на доли секунды;
 - для быстрых операций предпочтительнее локальный spinner на кнопке/toolbar/обновляемом блоке;
 - при mutation блокировать только реально затронутые controls, а не весь экран;
@@ -604,7 +862,6 @@ Glass-style не должен ухудшать пользовательский 
 ```text
 данные остаются видимыми → локальный spinner → данные обновляются без моргания
 ```
-
 
 ---
 
@@ -720,7 +977,8 @@ Avatar
 
 ### Select / Combobox policy
 
-Для основных пользовательских форм не использовать нативный desktop `<select>` как финальный UI, если нужен обычный SaaS-style selector.
+Для основных пользовательских форм не использовать нативный desktop `<select>` как финальный UI, если нужен обычный
+SaaS-style selector.
 
 Предпочитать:
 
@@ -728,7 +986,8 @@ Avatar
 - `Popover + Command` / Combobox pattern для searchable списка;
 - `DropdownMenu` только для action menu, а не как замена form select.
 
-Компонент выбора должен визуально соответствовать общей design system, корректно работать с keyboard/focus, помещаться на mobile и не выглядеть как стандартный OS combobox.
+Компонент выбора должен визуально соответствовать общей design system, корректно работать с keyboard/focus, помещаться
+на mobile и не выглядеть как стандартный OS combobox.
 
 Нативные controls допустимы только при осознанной UX/accessibility причине.
 
@@ -890,10 +1149,30 @@ Standalone Web App
 Использовать при необходимости:
 
 ```css
-env(safe-area-inset-top)
-env(safe-area-inset-bottom)
-env(safe-area-inset-left)
-env(safe-area-inset-right)
+env
+
+(
+safe-area-inset-top
+
+)
+env
+
+(
+safe-area-inset-bottom
+
+)
+env
+
+(
+safe-area-inset-left
+
+)
+env
+
+(
+safe-area-inset-right
+
+)
 ```
 
 Особенно для:
@@ -913,7 +1192,8 @@ UI не должен перекрываться Dynamic Island, notch или Hom
 
 На первом этапе Service Worker нужен прежде всего для Web App/PWA поведения и кеширования статических ресурсов.
 
-Если offline-функциональность будет добавляться позднее, она должна проектироваться явно, а не появляться случайно из-за aggressive caching.
+Если offline-функциональность будет добавляться позднее, она должна проектироваться явно, а не появляться случайно из-за
+aggressive caching.
 
 Не кешировать API-ответы Service Worker без осознанной стратегии.
 
@@ -1171,7 +1451,8 @@ Gateway ↔ Services
 Service ↔ Service
 ```
 
-Browser взаимодействует с Gateway через REST, GraphQL и WebSocket, если отдельно не принято другое архитектурное решение.
+Browser взаимодействует с Gateway через REST, GraphQL и WebSocket, если отдельно не принято другое архитектурное
+решение.
 
 ---
 
@@ -1365,11 +1646,13 @@ Frontend:
 Todo | In Progress | Resolved | Closed | Rejected
 ```
 
-Frontend не должен изобретать собственные переходы. `Closed` и `Rejected` отображаются frozen, но backend остаётся security/business boundary.
+Frontend не должен изобретать собственные переходы. `Closed` и `Rejected` отображаются frozen, но backend остаётся
+security/business boundary.
 
 ### Deleted user
 
-Исторический deleted user продолжает отображаться по прежнему `userId`; avatar заменяется на Deleted User placeholder. Frontend не пытается связать старый `userId` с новым аккаунтом по email/name.
+Исторический deleted user продолжает отображаться по прежнему `userId`; avatar заменяется на Deleted User placeholder.
+Frontend не пытается связать старый `userId` с новым аккаунтом по email/name.
 
 ### Нельзя
 
@@ -1378,7 +1661,6 @@ Frontend не должен изобретать собственные пере�
 - считать Unassigned реальным Project;
 - использовать hard delete вместо Archive;
 - восстанавливать terminal Task только изменением client state.
-
 
 ---
 
@@ -1507,9 +1789,19 @@ Frontend не должен изобретать собственные пере�
 - glass/translucent surfaces используют единые tokens, opacity, borders и radii;
 - нет чрезмерно вложенных `backdrop-filter` и декоративных blur-эффектов без пользы;
 - текст, controls и состояния остаются читаемыми поверх translucent surfaces;
-- новые компоненты продолжают NexusBoard Glass SaaS visual language, а не вводят Material/Bootstrap/случайный собственный стиль;
+- новые компоненты продолжают NexusBoard Glass SaaS visual language, а не вводят Material/Bootstrap/случайный
+  собственный стиль;
+- background имеет достаточную tonal/color variation для визуально заметного glass effect;
+- translucency и backdrop blur реально заметны без DevTools;
+- Sidebar/Header/navigation не выглядят как обычные непрозрачные светлые прямоугольники;
+- крупные glass surfaces имеют visual edge через subtle border/highlight;
+- inner controls визуально плотнее, чем окружающая glass surface;
+- dialog/sheet сохраняет background context и не выглядит как обычная белая modal card;
+- итоговый экран не сводится к flat light background + opaque white cards + rounded corners;
 
-Если интерфейс функционально работает, но выглядит как набор browser-native controls или заметно моргает при обычных обновлениях, feature не считается завершённой.
+Если интерфейс функционально работает, но выглядит как набор browser-native controls, заметно моргает при обычных
+обновлениях или визуально воспринимается как обычный light SaaS из непрозрачных белых карточек на плоском фоне, feature не
+считается завершённой.
 
 
 ---
@@ -1527,6 +1819,9 @@ Frontend часть feature считается завершённой, когд�
 - success feedback реализован
 - UI соответствует существующей design system и не использует случайные OS-native controls
 - UI соответствует NexusBoard Glass SaaS visual direction и не создаёт альтернативную визуальную систему
+- glass effect визуально заметен без DevTools, если экран использует glass surfaces
+- background и glass surfaces визуально взаимодействуют, а не выглядят как плоский фон + белые карточки
+- dialog/sidebar/header соответствуют surface hierarchy и не являются случайными непрозрачными блоками
 - нет дублирования backend business logic
 - нет прямого обращения к внутреннему микросервису
 - нет очевидной unnecessary abstraction
@@ -1567,4 +1862,5 @@ Frontend часть feature считается завершённой, когд�
 
 Если ответа нет, вероятно, frontend-код пока не нужен.
 
-Frontend NexusBoard существует для того, чтобы backend-система становилась полноценным, красивым и удобным приложением на desktop и mobile, а не оставалась только набором API.
+Frontend NexusBoard существует для того, чтобы backend-система становилась полноценным, красивым и удобным приложением
+на desktop и mobile, а не оставалась только набором API.

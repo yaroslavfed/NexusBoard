@@ -1,0 +1,27 @@
+name: Work Management Service
+
+on:
+  push:
+    paths:
+      - 'services/work-management-service/**'
+      - '.github/workflows/work-management-service.yml'
+  pull_request:
+    paths:
+      - 'services/work-management-service/**'
+      - '.github/workflows/work-management-service.yml'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/work-management-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: services/work-management-service/yarn.lock
+      - run: yarn install --frozen-lockfile
+      - run: yarn verify

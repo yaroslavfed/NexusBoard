@@ -46,7 +46,7 @@ packages/   # Версионируемые пакеты интеграционн
 infra/      # Docker, Kubernetes и Helm-описания
 ```
 
-Текущая реализация Task API находится в `services/task-service`. Пока API Gateway не создан,
+Текущая реализация Task API находится в `services/work-management-service`. Пока API Gateway не создан,
 Task API запускается напрямую. В процессе Phase 2 эта реализация эволюционирует в домен Work Management.
 При первом microservice split публичный HTTP transport будет вынесен в API Gateway, а Workspace/Project/Task/Comment
 и связанные business invariants останутся внутри Work Management Service.
