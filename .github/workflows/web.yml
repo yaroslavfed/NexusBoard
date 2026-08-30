@@ -11,7 +11,7 @@ on:
       - '.github/workflows/web.yml'
 
 jobs:
-  check:
+  quality:
     runs-on: ubuntu-latest
     defaults:
       run:

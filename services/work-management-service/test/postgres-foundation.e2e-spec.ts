@@ -11,7 +11,7 @@ describe('PostgreSQL foundation', () => {
         POSTGRES_PASSWORD: 'nexusboard',
       })
       .withExposedPorts(5432)
-      .withWaitStrategy(Wait.forLogMessage('database system is ready to accept connections'))
+      .withWaitStrategy(Wait.forLogMessage('database system is ready to accept connections', 2))
       .start();
     const dataSource = new DataSource({
       type: 'postgres',
@@ -19,16 +19,25 @@ describe('PostgreSQL foundation', () => {
       migrations: [CreateFoundation1710000000000],
     });
 
-    await dataSource.initialize();
-    await dataSource.runMigrations();
+    try {
+      await dataSource.initialize();
+      await dataSource.runMigrations();
 
-    const tables: unknown = await dataSource.query(
-      "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename",
-    );
+      const tables: unknown = await dataSource.query(
+        "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename",
+      );
 
-    expect(tables).toEqual([{ tablename: 'tasks' }, { tablename: 'users' }]);
+      expect(tables).toEqual([
+        { tablename: 'migrations' },
+        { tablename: 'tasks' },
+        { tablename: 'users' },
+      ]);
+    } finally {
+      if (dataSource.isInitialized) {
+        await dataSource.destroy();
+      }
 
-    await dataSource.destroy();
-    await container.stop();
+      await container.stop();
+    }
   }, 60_000);
 });

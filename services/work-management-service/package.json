@@ -14,15 +14,17 @@
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,test}/**/*.ts\"",
     "lint:fix": "eslint \"{src,test}/**/*.ts\" --fix",
-    "test": "jest",
+    "test": "yarn run test:unit",
+    "test:unit": "jest",
+    "test:integration": "jest --config ./test/jest-integration.json --runInBand --passWithNoTests",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json --runInBand",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/infrastructure/persistence/typeorm/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/infrastructure/persistence/typeorm/data-source.ts",
-    "check": "yarn run typecheck && yarn run lint && yarn run test && yarn run test:e2e && yarn run build && yarn run format:check",
-    "verify": "yarn run check"
+    "check": "yarn run typecheck && yarn run lint && yarn run format:check && yarn run build",
+    "verify": "yarn run check && yarn run test:unit && yarn run test:integration && yarn run test:e2e"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
